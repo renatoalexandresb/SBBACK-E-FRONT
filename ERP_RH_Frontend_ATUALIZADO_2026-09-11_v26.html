@@ -1,0 +1,2499 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.js"></script>
+    <style>
+      :root {
+        --navy: #0d172a;
+        --navy-2: #111c31;
+        --primary: #4f46e5;
+        --primary-soft: #eef2ff;
+        --success: #16a34a;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --bg: #f4f7fb;
+        --border: #e5e7eb;
+        --text: #172033;
+        --muted: #64748b;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        padding: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      }
+      .app-shell { min-height: 100vh; }
+      .topbar {
+        height: 62px;
+        background: linear-gradient(90deg, #0b1222, #111b31);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 20px;
+        box-shadow: 0 2px 10px rgba(15,23,42,.12);
+        position: sticky;
+        top: 0;
+        z-index: 1050;
+      }
+      .brand { display:flex; align-items:center; gap:10px; font-weight:800; }
+      .brand-icon { font-size: 1.35rem; color:#818cf8; }
+      .brand-name { font-size: 1.05rem; letter-spacing:.2px; }
+      .company-badge {
+        background:#5146e5; color:#fff; font-size:.67rem; padding:3px 8px;
+        border-radius:999px; font-weight:700;
+      }
+      .topbar-subtitle { font-size:.72rem; opacity:.9; }
+      .content-wrap { max-width: 1400px; margin:0 auto; padding:0 12px 28px; }
+      .main-nav {
+        background:#fff; border-bottom:1px solid var(--border); display:flex; gap:4px;
+        padding:0 12px; min-height:48px; align-items:stretch;
+        position: sticky;
+        top: 62px;
+        z-index: 1040;
+      }
+      .main-nav .nav-link {
+        border:0; border-bottom:2px solid transparent; border-radius:0; color:#64748b;
+        font-size:.69rem; font-weight:600; padding:13px 13px 10px; background:transparent;
+      }
+      .main-nav .nav-link.active { color:var(--primary); border-bottom-color:var(--primary); }
+      .main-card { background:#fff; border:1px solid var(--border); border-radius:12px; margin-top:16px;
+        box-shadow:0 5px 18px rgba(15,23,42,.06); overflow:hidden; }
+      .main-card-body { padding:18px; }
+      .section-title { font-size:.84rem; font-weight:700; color:var(--primary); border-bottom:1px solid var(--border);
+        padding-bottom:8px; margin:20px 0 16px; }
+      .table-wrap { border:1px solid var(--border); border-radius:8px; overflow:auto; max-height:580px; background:#fff; }
+      .erp-table { width:100%; min-width:1200px; margin:0; border-collapse:separate; border-spacing:0; font-size:.66rem; }
+      .erp-table thead th {
+        position:sticky; top:0; z-index:3; background:#20262e; color:#fff; vertical-align:middle;
+        padding:7px 6px; border-bottom:1px solid #111827; white-space:nowrap;
+        font-size:.64rem;
+      }
+      .erp-table thead .filter-row th { background:#20262e; padding:5px 6px 8px; }
+      .erp-table tbody td { padding:6px 6px; border-bottom:1px solid #eef1f4;
+        font-size:.63rem; white-space:nowrap; vertical-align:middle; }
+      .erp-table tbody tr:hover { background:#f8fafc; }
+      .table-filter {
+        display:block; width:100%; min-width:90px; height:30px; margin:0; padding:4px 7px;
+        border:1px solid #cbd5e1; border-radius:5px; background:#fff; color:#334155;
+        font-size:.62rem; outline:none;
+      }
+      .table-filter:focus { border-color:#818cf8; box-shadow:0 0 0 2px rgba(99,102,241,.15); }
+      .th-title { display:block; line-height:1.1; }
+      .row-number { width:42px; text-align:center; font-weight:700; color:#64748b; }
+      .action-cell { width:145px; min-width:145px; text-align:center; }
+      .btn-edit-pencil { color:#334155; background:#f1f5f9; border:1px solid #cbd5e1; border-radius:6px; padding:3px 8px; }
+      .btn-edit-pencil:hover { background:#e2e8f0; color:#0f172a; }
+      .contact-actions { display:inline-flex; align-items:center; justify-content:center; gap:3px; }
+      .btn-contact { width:27px; height:27px; padding:0; border:1px solid #cbd5e1; border-radius:6px;
+        background:#fff; display:inline-flex; align-items:center; justify-content:center; font-size:.75rem; }
+      .btn-contact:hover { background:#f1f5f9; }
+      .btn-whatsapp { color:#15803d; }
+      .btn-email { color:#2563eb; }
+      .btn-contact:disabled { opacity:.35; cursor:not-allowed; }
+      .btn-history { color:#7c3aed; }
+      .btn-history:hover { background:#f5f3ff; color:#6d28d9; }
+      .history-summary { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin-bottom:16px; }
+      .history-summary-card { border:1px solid var(--border); border-radius:8px; background:#f8fafc; padding:10px; }
+      .history-summary-label { font-size:.58rem; color:#64748b; text-transform:uppercase; font-weight:700; }
+      .history-summary-value { font-size:.75rem; font-weight:800; color:#1e293b; margin-top:3px; }
+      .history-timeline { position:relative; padding-left:24px; }
+      .history-timeline:before { content:""; position:absolute; left:8px; top:4px; bottom:4px; width:2px; background:#e2e8f0; }
+      .history-item { position:relative; padding:0 0 16px 12px; }
+      .history-item:before { content:""; position:absolute; left:-20px; top:4px; width:10px; height:10px; border-radius:50%; background:#4f46e5; border:2px solid #fff; box-shadow:0 0 0 2px #c7d2fe; }
+      .history-date { font-size:.64rem; color:#64748b; font-weight:700; }
+      .history-type { font-size:.78rem; font-weight:800; color:#1e293b; margin-top:2px; }
+      .history-change { font-size:.68rem; color:#475569; margin-top:4px; line-height:1.45; }
+      .history-meta { font-size:.58rem; color:#94a3b8; margin-top:4px; }
+      .history-empty { padding:28px; text-align:center; color:#94a3b8; font-size:.72rem; border:1px dashed #cbd5e1; border-radius:8px; }
+      .movement-question { background:#f8fafc; border:1px solid var(--border); border-radius:8px; padding:10px 12px; margin-bottom:12px; font-size:.68rem; color:#475569; }
+      @media (max-width:700px) { .history-summary { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+      .birthday-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; align-items:start; }
+      .birthday-card { background:#fff; border:1px solid var(--border); border-radius:10px; overflow:visible; min-width:0; }
+      .birthday-card-header { padding:12px 14px; display:flex; align-items:center; justify-content:space-between; gap:10px;
+        border-bottom:1px solid var(--border); background:#f8fafc; }
+      .birthday-card-title { font-size:.84rem; font-weight:800; margin:0; }
+      .birthday-count { font-size:.65rem; color:#64748b; }
+      .birthday-list { padding:10px; display:flex; flex-direction:column; gap:9px; max-height:none; overflow:visible; }
+      .birthday-person-card { width:100%; border:1px solid #dbe3ee; border-radius:9px; background:#fff; overflow:hidden; box-shadow:0 1px 2px rgba(15,23,42,.03); }
+      .birthday-person-main { padding:10px 12px; }
+      .birthday-person-top { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+      .birthday-person-name-wrap { min-width:0; flex:1; }
+      .birthday-person-number { display:inline-flex; align-items:center; justify-content:center; min-width:23px; height:23px; padding:0 5px; margin-right:7px;
+        border-radius:6px; background:#eef2ff; color:#4f46e5; font-size:.62rem; font-weight:800; vertical-align:middle; }
+      .birthday-highlight { font-weight:800; color:var(--primary); font-size:.70rem; line-height:1.35; }
+      .birthday-person-info { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-top:9px; }
+      .birthday-info-item { min-width:0; }
+      .birthday-info-label { display:block; font-size:.53rem; color:#94a3b8; text-transform:uppercase; font-weight:800; margin-bottom:2px; }
+      .birthday-info-value { display:block; font-size:.62rem; color:#334155; line-height:1.35; overflow-wrap:anywhere; }
+      .birthday-message-actions { display:flex; align-items:center; gap:4px; flex-shrink:0; }
+      .btn-birthday-message { border:1px solid #cbd5e1; background:#fff; color:#475569; border-radius:6px; padding:4px 7px; font-size:.61rem; font-weight:700; white-space:nowrap; }
+      .btn-birthday-message:hover { background:#f8fafc; }
+      .birthday-composer-row { background:#f8fafc; padding:10px; border-top:1px solid #eef1f4; overflow:visible; }
+      .birthday-composer { border:1px solid #dbe3ee; border-radius:8px; background:#fff; padding:10px; overflow:visible; }
+      .birthday-composer-title { font-size:.68rem; font-weight:800; color:#334155; margin-bottom:6px; }
+      .birthday-message-wrap { position:relative; }
+      .birthday-message-input { width:100%; min-height:72px; resize:vertical; border:1px solid #cbd5e1; border-radius:7px; padding:9px 42px 9px 9px; font-size:.70rem; line-height:1.4; color:#1e293b; }
+      .birthday-message-input:focus { outline:none; border-color:#818cf6; box-shadow:0 0 0 2px rgba(99,102,241,.12); }
+      .birthday-emoji-btn { position:absolute; right:7px; top:7px; width:29px; height:29px; border:1px solid #cbd5e1; border-radius:6px; background:#fff; font-size:1rem; line-height:1; }
+      .birthday-emoji-btn:hover { background:#f8fafc; }
+      .birthday-emoji-picker { margin-top:7px; display:none; max-width:100%; width:100%; }
+      .birthday-emoji-picker.open { display:block; }
+      .birthday-send-row { display:flex; justify-content:flex-end; gap:6px; margin-top:8px; padding-bottom:2px; flex-wrap:wrap; position:relative; z-index:2; }
+      .birthday-send-btn { border:1px solid #cbd5e1; border-radius:6px; padding:5px 9px; font-size:.64rem; font-weight:700; background:#fff; display:inline-flex; align-items:center; gap:5px; }
+      .birthday-send-btn.whatsapp { color:#15803d; border-color:#bbf7d0; }
+      .birthday-send-btn.email { color:#2563eb; border-color:#bfdbfe; }
+      .birthday-send-btn:disabled { color:#94a3b8 !important; background:#e5e7eb !important; border-color:#d1d5db !important; opacity:1; cursor:not-allowed; }
+      .birthday-empty { padding:28px 12px; text-align:center; color:#94a3b8; font-size:.70rem; }
+      @media (max-width:1100px) { .birthday-person-info { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+      @media (max-width:900px) { .birthday-grid { grid-template-columns:1fr; } }
+      @media (max-width:600px) { .birthday-person-top { flex-direction:column; } .birthday-message-actions { width:100%; } .btn-birthday-message { width:100%; } .birthday-person-info { grid-template-columns:1fr; } }
+      .demitidos-filtros { display:grid; grid-template-columns:180px 140px minmax(220px,1fr); gap:12px; align-items:end; margin-bottom:12px; position:relative; z-index:20; }
+      /* O menu de meses precisa poder sair da área do filtro sem ser cortado pelo cartão principal. */
+      .main-card:has(#demitidos.show) { overflow:visible; }
+      #demitidos.show { position:relative; z-index:20; overflow:visible; }
+      #demitidos .demitidos-filtros .dropdown { position:relative; z-index:2000; }
+      /* O menu é posicionado via JS como fixed para nunca ser recortado pelo .main-card. */
+      #demitidos .demitidos-filtros .dropdown-menu { z-index:10000 !important; max-height:340px; overflow-y:auto; overflow-x:hidden; }
+      #dropdownMesesDemitidosPortal { position:fixed !important; z-index:20000 !important; max-height:340px !important; overflow-y:auto !important; overflow-x:hidden !important; margin:0 !important; }
+      #demitidos .demitidos-filtros .dropdown-menu .form-check { min-height:30px; display:flex; align-items:center; gap:6px; padding:3px 4px; }
+      #demitidos .demitidos-filtros .dropdown-menu .form-check-label { cursor:pointer; white-space:nowrap; }
+      #demitidos .demitidos-mes-btn { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+      .demitidos-filtros .form-label, .demitidos-pesquisa .form-label { font-size:.68rem; margin-bottom:4px; }
+      .demitidos-total-box { min-height:58px; border:1px solid var(--border); border-radius:9px; background:#f8fafc; padding:8px 12px; display:flex; align-items:center; justify-content:space-between; gap:10px; }
+      .demitidos-total-box span { font-size:.68rem; color:#64748b; font-weight:700; }
+      .demitidos-total-box strong { font-size:1.05rem; color:#dc2626; }
+      .demitidos-pesquisa { margin-bottom:12px; max-width:520px; }
+      .demitidos-table-wrap { width:100%; overflow-x:auto; border:1px solid var(--border); border-radius:9px; background:#fff; }
+      .demitidos-table { font-size:.66rem; min-width:980px; }
+      .demitidos-table thead th { background:#202630; color:#fff; border-color:#202630; font-size:.62rem; white-space:nowrap; padding:8px 7px; }
+      .demitidos-table tbody td { padding:7px; vertical-align:middle; white-space:nowrap; }
+      .demitidos-table tbody tr:hover { background:#f8fafc; }
+      .demitidos-name { font-weight:800; color:var(--primary); }
+      .demitidos-motivo { font-weight:700; color:#b91c1c; }
+      @media (max-width:700px) { .demitidos-filtros { grid-template-columns:1fr 1fr; } .demitidos-total-box { grid-column:1 / -1; } .demitidos-pesquisa { max-width:none; } }
+      .mass-upload-grid { grid-template-columns:repeat(4,minmax(0,1fr)); }
+      .mass-model-grid { grid-template-columns:1fr; }
+      .mass-history-card { border-color:#cbd5e1; background:#f8fafc; }
+      .mass-history-icon { background:#fef3c7 !important; color:#f59e0b !important; }
+      .history-base-summary { display:flex; gap:6px; flex-wrap:wrap; margin:10px 0; }
+      .history-base-pill { padding:4px 8px; border-radius:999px; background:#eef2ff; color:#4338ca; font-size:.62rem; font-weight:800; }
+      .history-warning { background:#fff7ed; border:1px solid #fed7aa; color:#9a3412; border-radius:8px; padding:9px 11px; font-size:.68rem; }
+      .history-missing-table-wrap { max-height:360px; overflow:auto; border:1px solid #e2e8f0; border-radius:8px; }
+      .history-missing-table { font-size:.67rem; }
+      .history-missing-table th { position:sticky; top:0; background:#202630; color:#fff; z-index:2; }
+      .history-date-input { width:145px; font-size:.65rem; padding:.25rem .4rem; }
+      .history-confirm-footer { display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; }
+      .history-upload-help { font-size:.63rem; color:#64748b; margin-top:7px; }
+      @media (max-width:1050px) { .mass-model-grid, .mass-upload-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } } @media (max-width:700px) { .mass-model-grid, .mass-upload-grid { grid-template-columns:1fr; } }
+      .mass-header { margin-bottom:14px; }
+      .mass-model-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin-bottom:14px; width:100%; max-width:none; }
+      .mass-card { border:1px solid var(--border); border-radius:10px; background:#f8fafc; padding:14px; display:flex; gap:12px; align-items:flex-start; }
+      .mass-card-icon { min-width:48px; width:48px; height:48px; border-radius:9px; background:#e8eefc; color:#2563eb; display:flex; align-items:center; justify-content:center; position:relative; font-size:1.35rem; }
+      .mass-card-icon-danger { background:#fff1f2; color:#e11d48; }
+      .mass-card-icon .bi-arrow-down-short { position:absolute; font-size:1rem; right:7px; bottom:5px; font-weight:800; }
+      .mass-card h5 { font-size:.84rem; margin:0 0 4px; font-weight:800; }
+      .mass-card p { font-size:.67rem; color:#64748b; margin:0 0 9px; }
+      .mass-upload-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; align-items:stretch; width:100%; }
+      .mass-upload-card { border:1px solid var(--border); border-radius:10px; padding:12px; background:#fff; min-width:0; display:flex; flex-direction:column; align-items:flex-start; }
+      .mass-upload-title { font-size:.76rem; font-weight:800; margin-bottom:8px; }
+      .mass-upload-card .form-control { font-size:.70rem; width:100%; min-width:0; }
+      .mass-upload-card .mass-upload-button { width:auto; min-width:155px; max-width:100%; display:block; margin-top:8px !important; padding:.42rem .7rem; font-size:.72rem; align-self:flex-start; }
+      .mass-note { margin-top:12px; padding:10px 12px; border-radius:8px; background:#f8fafc; border:1px solid var(--border); color:#64748b; font-size:.66rem; }
+      @media (max-width:900px) { .mass-upload-grid { grid-template-columns:1fr; } }
+      @media (max-width:700px) { .mass-model-grid { max-width:100%; } .mass-upload-grid { grid-template-columns:1fr; } }
+      .birthday-person-card { overflow:visible; }
+      .birthday-person-main, .birthday-composer-row, .birthday-composer { min-width:0; }
+      .experience-layout { display:flex; flex-direction:column; gap:14px; align-items:stretch; }
+      .panel { background:#fff; border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+      .panel-header { padding:12px 14px 8px; display:flex; align-items:center; justify-content:space-between; gap:10px; }
+      .panel-title { font-size:.92rem; font-weight:800; margin:0; }
+      .legend { display:flex; gap:18px; flex-wrap:wrap; font-size:.72rem; color:#475569; padding:0 14px 10px; }
+      .legend-dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:5px; }
+      .dot-danger { background:var(--danger); } .dot-warning { background:var(--warning); } .dot-success { background:var(--success); }
+      .experience-table-wrap { max-height:520px; overflow:auto; border-top:1px solid var(--border); }
+      .experience-table { min-width:1180px; }
+      .experience-table thead th { position:sticky; top:0; z-index:2; }
+      .status-badge { font-size:.60rem; font-weight:700; border-radius:999px; padding:3px 6px; display:inline-block; }
+      .status-vencido { background:#fee2e2; color:#b91c1c; }
+      .status-avencer { background:#fef3c7; color:#92400e; }
+      .status-feito { background:#dcfce7; color:#15803d; }
+      .status-select { width:108px; min-width:108px; height:27px; border:1px solid #d7dee8; border-radius:6px; background:#fff; font-size:.60rem; font-weight:700; padding:2px 22px 2px 7px; cursor:pointer; }
+      .status-select:focus { border-color:#818cf8; box-shadow:0 0 0 2px rgba(99,102,241,.12); outline:none; }
+      .status-select-vencido { color:#b91c1c; background:#fff5f5; }
+      .status-select-avencer { color:#92400e; background:#fffbeb; }
+      .status-select-feito { color:#15803d; background:#f0fdf4; }
+      .status-col { text-align:center; }
+      .status-saving { opacity:.55; pointer-events:none; }
+      .calendar-panel { padding-bottom:12px; }
+      .calendar-toolbar { display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:8px; padding:0 14px 10px; }
+      .calendar-nav-btn { width:34px; height:34px; border:0; border-radius:6px; background:#243448; color:#fff; display:flex; align-items:center; justify-content:center; }
+      .calendar-nav-btn:disabled { opacity:.35; cursor:not-allowed; }
+      .calendar-title { text-align:center; font-size:1rem; font-weight:500; text-transform:lowercase; margin:0; }
+      .calendar-today { border:1px solid #cbd5e1; background:#f8fafc; color:#334155; border-radius:6px; padding:7px 9px; font-size:.7rem; }
+      .calendar-grid { display:grid; grid-template-columns:repeat(7, minmax(0,1fr)); gap:1px; background:#e2e8f0; border:1px solid #e2e8f0; margin:0 10px; }
+      .calendar-day-header { background:#f1f5f9; text-align:center; font-weight:700; font-size:.68rem; padding:7px 2px; }
+      .calendar-day { height:132px; min-height:132px; background:#fff; padding:4px; overflow:hidden; display:flex; flex-direction:column; }
+      .calendar-day-events { flex:1; min-height:0; overflow-y:auto; overflow-x:hidden; padding-right:2px; }
+      .calendar-day-events::-webkit-scrollbar { width:7px; }
+      .calendar-day-events::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:8px; }
+      .calendar-day-events::-webkit-scrollbar-track { background:#f8fafc; }
+      .calendar-day.other-month { background:#fafafa; color:#cbd5e1; }
+      .calendar-day.today { box-shadow:inset 0 0 0 2px #c7d2fe; }
+      .day-head { display:flex; align-items:center; justify-content:space-between; gap:4px; min-height:18px; }
+      .day-num { font-size:.68rem; font-weight:700; margin-bottom:4px; color:#334155; }
+      .day-subtotal { align-items:center; justify-content:center; padding:2px 5px; border-radius:10px; background:#e2e8f0; color:#475569; font-size:.50rem; font-weight:800; white-space:nowrap; }
+      .other-month .day-num { color:#cbd5e1; }
+      .badge-event { display:block; font-size:.58rem; padding:4px 5px; margin-bottom:3px; border-radius:4px; line-height:1.18; overflow:hidden; }
+      .badge-event .event-title { display:block; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+      .badge-event .event-sub { display:block; font-size:.52rem; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+      .event-vencido { background:#ef4444; color:#fff; }
+      .event-avencer { background:#f59e0b; color:#fff; }
+      .event-feito { background:#16a34a; color:#fff; }
+      .calendar-limit-note { font-size:.64rem; color:#94a3b8; padding:8px 14px 0; text-align:center; }
+      .experience-list-panel { width:100%; }
+      .experience-pagination { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 12px; border-top:1px solid var(--border); background:#fafafa; }
+      .pagination-info { font-size:.68rem; color:#64748b; }
+      .pagination-buttons { display:flex; gap:5px; align-items:center; }
+      .page-btn { min-width:32px; height:30px; padding:4px 8px; border:1px solid #cbd5e1; border-radius:5px; background:#fff; color:#334155; font-size:.68rem; }
+      .page-btn:hover:not(:disabled) { background:#f1f5f9; }
+      .page-btn.active { background:#1e293b; color:#fff; border-color:#1e293b; }
+      .page-btn:disabled { opacity:.45; cursor:not-allowed; }
+      .page-size-label { font-size:.68rem; color:#64748b; display:flex; align-items:center; gap:5px; }
+      .page-size-label select { height:30px; font-size:.68rem; border:1px solid #cbd5e1; border-radius:5px; background:#fff; }
+      .filters-card { background:#f8fafc; border:1px solid var(--border); border-radius:9px; padding:12px; }
+      .filters-card label { font-size:.68rem; color:#475569; font-weight:700; margin-bottom:4px; }
+      .filters-card .form-select, .filters-card .form-control { font-size:.72rem; }
+      .period-filter-details { position:relative; width:100%; }
+      .period-filter-details > summary { list-style:none; cursor:pointer; user-select:none; height:31px; border:1px solid #ced4da; border-radius:6px; background:#fff; padding:6px 28px 6px 9px; font-size:.72rem; color:#334155; position:relative; }
+      .period-filter-details > summary::-webkit-details-marker { display:none; }
+      .period-filter-details > summary::after { content:"⌄"; position:absolute; right:9px; top:4px; font-size:15px; color:#475569; }
+      .period-filter-panel { position:absolute; z-index:50; top:35px; left:0; width:100%; min-width:220px; max-height:250px; overflow:auto; background:#fff; border:1px solid #cbd5e1; border-radius:7px; box-shadow:0 8px 22px rgba(15,23,42,.15); padding:8px; }
+      .period-filter-option { display:flex; align-items:center; gap:7px; padding:6px 5px; font-size:.72rem; font-weight:600; color:#334155; cursor:pointer; border-radius:5px; }
+      .period-filter-option:hover { background:#f1f5f9; }
+      .period-filter-option input { margin:0; accent-color:#2563eb; }
+      .period-filter-separator { border-top:1px solid #e2e8f0; margin:5px 0; }
+      .experience-table { min-width:1700px; }
+      .experience-table .period-col { white-space:nowrap; }
+      .top-section { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:12px; }
+      .top-section h4 { font-size:.88rem; }
+      .subtext { font-size:.68rem; color:#94a3b8; }
+      .search-box { margin-bottom:10px; }
+      .search-box .form-control { font-size:.75rem; }
+      #manual { font-size:.76rem; }
+      #manual .form-label { font-size:.73rem; margin-bottom:4px; }
+      #manual .form-control, #manual .form-select { font-size:.75rem; padding:.38rem .58rem; }
+      #manual .section-title { font-size:.78rem; margin:16px 0 12px; padding-bottom:6px; }
+      #manual .btn-lg { font-size:.82rem; padding:.55rem .8rem; }
+      #manual .mb-3 { margin-bottom:.65rem !important; }
+      #modalHistorico .modal-header { background:#163f73 !important; color:#fff !important; }
+      #modalHistorico .modal-header .modal-title { color:#fff !important; }
+      #modalHistorico .modal-header .btn-close { filter:brightness(0) invert(1); opacity:.95; }
+      /* ORGANOGRAMA */
+      .org-toolbar { display:flex; gap:8px; align-items:end; flex-wrap:wrap; margin-bottom:14px; }
+      .org-toolbar .org-field { min-width:190px; }
+      .org-toolbar .org-field.search { min-width:280px; flex:1 1 300px; }
+      /* Área do organograma ocupa praticamente toda a altura útil da tela. */
+      .org-canvas { position:relative; height:calc(100vh - 285px); min-height:480px; }
+      .org-zoom-controls { position:absolute; top:12px; right:12px; z-index:20; display:flex; align-items:center; gap:0; filter:drop-shadow(0 2px 5px rgba(15,23,42,.12)); }
+      .org-zoom-controls .btn { min-width:34px; height:31px; padding:.25rem .45rem; border-radius:0; background:#fff; }
+      .org-zoom-controls .btn:first-child { border-radius:7px 0 0 7px; }
+      .org-zoom-controls .btn:last-child { border-radius:0 7px 7px 0; }
+      .org-zoom-controls .org-zoom-value { min-width:58px; font-weight:700; background:#fff; }
+      .org-canvas .org-scroll { padding-top:52px; height:100%; max-height:none; box-sizing:border-box; }
+      .org-summary { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+      .org-pill { background:#f4f7fb; border:1px solid #dfe6ef; border-radius:999px; padding:6px 10px; font-size:.72rem; color:#49627e; }
+      .org-scroll { overflow:auto; border:1px solid #e1e7ef; border-radius:12px; background:#fbfcfe; min-height:0; height:100%; max-height:none; padding:24px 20px 36px; box-sizing:border-box; }
+      .org-tree, .org-tree ul { list-style:none; margin:0; padding:0; }
+      .org-tree { min-width:max-content; text-align:center; }
+      .org-tree ul { display:flex; justify-content:center; position:relative; padding-top:30px; gap:18px; }
+      .org-tree > li { display:inline-block; vertical-align:top; }
+      .org-tree li { position:relative; padding:30px 8px 0; }
+      .org-tree li::before, .org-tree li::after { content:""; position:absolute; top:0; border-top:1px solid #cbd5e1; width:50%; height:30px; }
+      .org-tree li::before { right:50%; }
+      .org-tree li::after { left:50%; border-left:1px solid #cbd5e1; }
+      .org-tree > li::before, .org-tree > li::after { display:none; }
+      .org-tree li:only-child::before, .org-tree li:only-child::after { display:none; }
+      .org-tree li:first-child::before, .org-tree li:last-child::after { border:0; }
+      .org-tree li:first-child::after { border-radius:5px 0 0 0; }
+      .org-tree li:last-child::before { border-radius:0 5px 0 0; }
+      .org-node { display:inline-flex; flex-direction:column; text-align:left; width:245px; min-height:94px; background:#fff; border:1px solid #d8e1ec; border-radius:12px; box-shadow:0 3px 12px rgba(24,55,88,.07); position:relative; padding:12px 38px 11px 13px; vertical-align:top; }
+      .org-node:hover { border-color:#7aa7e8; box-shadow:0 5px 16px rgba(24,55,88,.12); }
+      .org-node-name { font-weight:800; color:#13243a; font-size:.82rem; line-height:1.2; }
+      .org-node-role { color:#3e6fa9; font-size:.68rem; margin-top:4px; font-weight:600; }
+      .org-node-meta { color:#70849b; font-size:.62rem; margin-top:5px; line-height:1.35; }
+      .org-node-toggle { position:absolute; right:9px; top:10px; width:25px; height:25px; border:1px solid #cdd9e7; background:#f6f9fd; border-radius:7px; color:#2f6edb; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+      .org-node-toggle:hover { background:#eaf2ff; }
+      .org-node-toggle.no-children { visibility:hidden; pointer-events:none; }
+      .org-tree li.org-collapsed > ul { display:none; }
+      .org-tree li.org-collapsed > .org-node::after { content:"Subordinados ocultos"; display:block; color:#8a9aad; font-size:.58rem; margin-top:4px; }
+      .org-unresolved { margin:10px auto 0; max-width:850px; font-size:.68rem; color:#8a5a00; background:#fff8e6; border:1px solid #f2d28a; border-radius:8px; padding:8px 10px; text-align:left; }
+      .org-empty { padding:70px 20px; text-align:center; color:#7a8da3; font-size:.8rem; }
+      @media (max-width: 700px) { .org-canvas { height:calc(100vh - 365px); min-height:360px; } .org-scroll { padding:15px 8px 28px; } .org-node { width:210px; } .org-toolbar .org-field, .org-toolbar .org-field.search { min-width:100%; flex-basis:100%; } }
+      .consulta-link-card { display:flex; align-items:center; justify-content:space-between; gap:16px; margin:0 0 12px; padding:11px 13px; border:1px solid #cfe0f7; border-radius:12px; background:linear-gradient(135deg,#f4f9ff 0%,#eaf3ff 100%); box-shadow:0 3px 12px rgba(37,99,235,.08); }
+      .consulta-link-info { display:flex; align-items:center; gap:11px; min-width:0; }
+      .consulta-link-icon { width:39px; height:39px; border-radius:10px; display:flex; align-items:center; justify-content:center; background:#fff; border:1px solid #cfe0f7; color:#1769d1; font-size:1.15rem; box-shadow:0 2px 6px rgba(15,23,42,.07); flex:0 0 auto; }
+      .consulta-link-title { font-size:.78rem; font-weight:800; color:#123b70; margin:0; }
+      .consulta-link-sub { font-size:.62rem; color:#61758f; margin:2px 0 0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+      .consulta-link-value { font-family:monospace; font-size:.61rem; color:#55708f; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:720px; }
+      .btn-copiar-consulta { position:relative; overflow:hidden; border:0; border-radius:9px; padding:9px 14px; background:linear-gradient(135deg,#1769d1,#0b4ea2); color:#fff; font-size:.72rem; font-weight:800; box-shadow:0 4px 10px rgba(23,105,209,.24); display:inline-flex; align-items:center; gap:7px; white-space:nowrap; cursor:pointer; }
+      .btn-copiar-consulta::after { content:""; position:absolute; width:58px; height:58px; border:2px solid rgba(255,255,255,.28); border-radius:50%; right:-29px; top:-28px; }
+      .btn-copiar-consulta:hover { transform:translateY(-1px); box-shadow:0 6px 13px rgba(23,105,209,.3); color:#fff; }
+      .btn-copiar-consulta.copiado { background:linear-gradient(135deg,#159957,#087443); }
+      .modo-consulta-gestores .main-nav { display:none !important; }
+      .modo-consulta-gestores .content-wrap { padding-top:14px; }
+      .modo-consulta-gestores .main-card { margin-top:0; }
+      .modo-consulta-gestores .consulta-link-card { display:none !important; }
+      .modo-consulta-gestores .experience-list-panel { display:none !important; }
+      .modo-consulta-gestores .top-section > button { display:none !important; }
+      .modo-consulta-gestores .filters-card { margin-top:0; }
+      @media (max-width: 700px) { .consulta-link-card { align-items:stretch; flex-direction:column; } .consulta-link-info { min-width:0; } .consulta-link-value { max-width:calc(100vw - 80px); } .btn-copiar-consulta { justify-content:center; width:100%; } }
+      @media (max-width: 1100px) { .experience-layout { display:flex; flex-direction:column; } }
+      @media (max-width: 700px) {
+        .topbar { padding:0 12px; } .topbar-subtitle { display:none; } .content-wrap { padding:0 8px 20px; }
+        .main-nav { overflow-x:auto; white-space:nowrap; padding:0 6px; } .main-card-body { padding:10px; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-shell">
+      <div class="topbar">
+        <div class="brand">
+          <span class="brand-icon"><i class="bi bi-people-fill"></i></span>
+          <span class="brand-name">ERP RH</span>
+          <span class="company-badge">Gestão</span>
+        </div>
+        <div class="topbar-subtitle"><i class="bi bi-calendar-check me-1"></i> Módulo de Experiência e Colaboradores</div>
+      </div>
+      <div class="content-wrap">
+        <div class="main-nav" id="abaCadastro" role="tablist">
+          <button class="nav-link active" id="manual-tab" data-bs-toggle="tab" data-bs-target="#manual" type="button"><i class="bi bi-person-plus-fill me-1"></i> Cadastro / Mapeamento</button>
+          <button class="nav-link" id="consulta-tab" data-bs-toggle="tab" data-bs-target="#consulta" type="button" onclick="carregarQuadroAtivo()"><i class="bi bi-table me-1"></i> Quadro de Colaboradores</button>
+          <button class="nav-link" id="organograma-tab" data-bs-toggle="tab" data-bs-target="#organograma" type="button" onclick="carregarOrganograma()"><i class="bi bi-diagram-3-fill me-1"></i> Organograma</button>
+          <button class="nav-link" id="exp-tab" data-bs-toggle="tab" data-bs-target="#experiencia" type="button" onclick="carregarAvaliacoes()"><i class="bi bi-calendar3 me-1"></i> Acompanhamento Experiência</button>
+          <button class="nav-link" id="aniversarios-tab" data-bs-toggle="tab" data-bs-target="#aniversarios" type="button" onclick="carregarAniversariantesHoje()"><i class="bi bi-gift-fill me-1"></i> Aniversariantes</button>
+          <button class="nav-link" id="demitidos-tab" data-bs-toggle="tab" data-bs-target="#demitidos" type="button" onclick="carregarDemitidosMes()"><i class="bi bi-person-x-fill me-1"></i> Demitidos do Mês</button>
+          <button class="nav-link" id="massa-tab" data-bs-toggle="tab" data-bs-target="#massa" type="button"><i class="bi bi-file-earmark-spreadsheet-fill me-1"></i> Carga em Massa</button>
+        </div>
+        <div class="main-card">
+          <div class="main-card-body">
+        <div class="tab-content" id="conteudoAbas">
+          
+          <!-- ABA 1: CADASTRO MANUAL -->
+          <div class="tab-pane fade show active" id="manual">
+            <form id="formCadastro" onsubmit="enviarFormularioManual(event)">
+              <div class="section-title"><i class="bi bi-card-heading me-1"></i> 1. Informações Pessoais</div>
+              <div class="row">
+                <div class="col-md-6 mb-3"><label class="form-label fw-semibold">Nome Completo</label><input type="text" id="nome" class="form-control" required></div>
+                <div class="col-md-6 mb-3"><label class="form-label fw-semibold">Email</label><input type="email" id="email" class="form-control" required></div>
+              </div>
+              <div class="row">
+                <div class="col-md-3 mb-3"><label class="form-label fw-semibold">CPF</label><input type="text" id="cpf" class="form-control" oninput="aplicarMascaraCPF(this)" maxlength="14" required></div>
+                <div class="col-md-3 mb-3">
+                  <label class="form-label fw-semibold">Sexo</label>
+                  <select id="sexo" class="form-select"><option value="Masculino">Masculino</option><option value="Feminino">Feminino</option><option value="Outro">Outro</option></select>
+                </div>
+                <div class="col-md-3 mb-3"><label class="form-label fw-semibold">Celular</label><input type="text" id="celular" class="form-control" oninput="aplicarMascaraTelefone(this)" maxlength="15"></div>
+                <div class="col-md-3 mb-3"><label class="form-label fw-semibold">Data de Nascimento</label><input type="date" id="dataNascimento" class="form-control"></div>
+              </div>
+              <div class="section-title"><i class="bi bi-briefcase-fill me-1"></i> 2. Cargo e Formação</div>
+              <div class="row">
+                <div class="col-md-4 mb-3"><label class="form-label fw-semibold">Data de Contratação</label><input type="date" id="dataContratacao" class="form-control" required></div>
+                <div class="col-md-4 mb-3"><label class="form-label fw-semibold">Formação</label><input type="text" id="formacao" class="form-control"></div>
+                <div class="col-md-4 mb-3"><label class="form-label fw-semibold">Cargo</label><input type="text" id="cargo" class="form-control" required></div>
+              </div>
+              <div class="section-title"><i class="bi bi-diagram-3-fill me-1"></i> 3. Unidades e Grupos</div>
+              <div class="row">
+                <div class="col-md-4 mb-3"><label class="form-label fw-semibold">Unidade Geográfica / Gerência</label><input type="text" id="unidadeGeografica" class="form-control"></div>
+                <div class="col-md-4 mb-3"><label class="form-label fw-semibold">Unidade de Negócio / Loja</label><input type="text" id="unidadeNegocio" class="form-control"></div>
+                <div class="col-md-4 mb-3"><label class="form-label fw-semibold">Grupos</label><input type="text" id="grupos" class="form-control"></div>
+              </div>
+              <div class="row">
+                <div class="col-md-6 mb-3"><label class="form-label fw-semibold">Líderes / Supervisor</label><input type="text" id="lideres" class="form-control"></div>
+                <div class="col-md-6 mb-3"><label class="form-label fw-semibold">Tags</label><input type="text" id="tags" class="form-control"></div>
+              </div>
+              <div class="section-title"><i class="bi bi-exclamation-triangle-fill me-1"></i> 4. Desligamento / Status</div>
+              <div class="row">
+                <div class="col-md-4 mb-3"><label class="form-label fw-semibold">Data de Desligamento</label><input type="date" id="dataDesligamento" class="form-control"></div>
+                <div class="col-md-4 mb-3"><label class="form-label fw-semibold">Tipo de Desligamento</label><select id="tipoDesligamento" class="form-select"><option value="">Não informado</option><option value="Sem justa causa">Sem justa causa</option><option value="Por justa causa">Por justa causa</option><option value="Pedido de demissão">Pedido de demissão</option><option value="Demissão consensual">Demissão consensual</option><option value="Rescisão indireta">Rescisão indireta</option></select></div>
+                <div class="col-md-4 mb-3">
+                  <label class="form-label fw-semibold">Bloquear Colaborador</label>
+                  <select id="bloquear" class="form-select"><option value="Não">Não</option><option value="Sim">Sim</option></select>
+                </div>
+              </div>
+              <button type="submit" id="btnSalvarManual" class="btn btn-primary w-100 mt-3 btn-lg fw-bold">Cadastrar Colaborador</button>
+            </form>
+            <div id="msgManual" class="alert mt-3 d-none"></div>
+          </div>
+
+          <!-- ABA 2: CARGA EM MASSA -->
+          <div class="tab-pane fade" id="massa">
+            <div class="mass-header">
+              <div>
+                <h4 class="mb-1 fw-bold"><i class="bi bi-database-fill-up me-2"></i>Carga e Atualização da Base</h4>
+                <div class="subtext">Baixe um modelo, preencha os dados e depois envie o arquivo para atualizar o sistema.</div>
+              </div>
+            </div>
+
+            <div class="mass-model-grid">
+              <div class="mass-card">
+                <div class="mass-card-icon"><i class="bi bi-folder-fill"></i><i class="bi bi-arrow-down-short"></i></div>
+                <div>
+                  <h5>Modelo de Admissão</h5>
+                  <p>Modelo com todos os campos necessários para cadastrar novos colaboradores.</p>
+                  <button type="button" class="btn btn-outline-primary btn-sm" onclick="baixarModeloAdmissao()">
+                    <i class="bi bi-folder-fill me-1"></i><i class="bi bi-arrow-down-short me-1"></i> Baixar modelo
+                  </button>
+                </div>
+              </div>
+
+              <div class="mass-card">
+                <div class="mass-card-icon mass-card-icon-danger"><i class="bi bi-folder-fill"></i><i class="bi bi-arrow-down-short"></i></div>
+                <div>
+                  <h5>Modelo de Demissão</h5>
+                  <p>Modelo Excel com Nome Completo, CPF, Data de Desligamento e lista suspensa de motivos na coluna D.</p>
+                  <button type="button" class="btn btn-outline-danger btn-sm" onclick="baixarModeloDemissao()">
+                    <i class="bi bi-folder-fill me-1"></i><i class="bi bi-arrow-down-short me-1"></i> Baixar modelo
+                  </button>
+                </div>
+              </div>
+
+              <div class="mass-card">
+                <div class="mass-card-icon"><i class="bi bi-arrow-left-right"></i></div>
+                <div>
+                  <h5>Modelo de Movimentações</h5>
+                  <p>Modelo Excel para transferências, alterações de cargo, supervisor e promoções.</p>
+                  <button type="button" class="btn btn-outline-primary btn-sm" onclick="baixarModeloMovimentacoes()">
+                    <i class="bi bi-folder-fill me-1"></i><i class="bi bi-arrow-down-short me-1"></i> Baixar modelo
+                  </button>
+                </div>
+              </div>
+
+              <div class="mass-card mass-history-card">
+                <div class="mass-card-icon mass-history-icon"><i class="bi bi-clock-history"></i></div>
+                <div>
+                  <h5>Modelo de Histórico</h5>
+                  <p>Modelo para carregar fotografias mensais e reconstruir a linha do tempo dos colaboradores.</p>
+                  <button type="button" class="btn btn-outline-warning btn-sm" onclick="baixarModeloHistorico()">
+                    <i class="bi bi-folder-fill me-1"></i><i class="bi bi-arrow-down-short me-1"></i> Baixar modelo
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="mass-upload-grid">
+              <div class="mass-upload-card">
+                <div class="mass-upload-title"><i class="bi bi-person-plus-fill me-1"></i>Enviar Admissões</div>
+                <input type="file" id="arquivoAdmissoes" class="form-control" accept=".xlsx,.xls,.csv">
+                <button onclick="processarAdmissoes()" id="btnImportarAdmissoes" class="btn btn-success mass-upload-button">
+                  <i class="bi bi-cloud-arrow-up-fill me-1"></i> Carregar admissões
+                </button>
+              </div>
+
+              <div class="mass-upload-card">
+                <div class="mass-upload-title"><i class="bi bi-person-dash-fill me-1"></i>Enviar Demissões</div>
+                <input type="file" id="arquivoDemissoes" class="form-control" accept=".xlsx,.xls,.csv">
+                <button onclick="processarDemissoes()" id="btnImportarDemissoes" class="btn btn-danger mass-upload-button">
+                  <i class="bi bi-cloud-arrow-up-fill me-1"></i> Atualizar demissões
+                </button>
+              </div>
+
+              <div class="mass-upload-card">
+                <div class="mass-upload-title"><i class="bi bi-arrow-left-right me-1"></i>Enviar Movimentações</div>
+                <input type="file" id="arquivoMovimentacoes" class="form-control" accept=".xlsx,.xls,.csv">
+                <button onclick="processarMovimentacoes()" id="btnImportarMovimentacoes" class="btn btn-primary mass-upload-button">
+                  <i class="bi bi-cloud-arrow-up-fill me-1"></i> Carregar movimentações
+                </button>
+              </div>
+
+              <div class="mass-upload-card mass-history-card">
+                <div class="mass-upload-title"><i class="bi bi-clock-history me-1"></i>Carregar Histórico</div>
+                <input type="file" id="arquivoHistorico" class="form-control" accept=".xlsx,.xls,.csv" multiple>
+                <button onclick="processarHistorico()" id="btnImportarHistorico" class="btn btn-warning mass-upload-button">
+                  <i class="bi bi-search me-1"></i> Comparar bases históricas
+                </button>
+                <div class="history-upload-help">Selecione uma ou mais bases. O arquivo/modelo deve informar o Mês de Referência.</div>
+              </div>
+            </div>
+
+            <div class="mass-note">
+              <i class="bi bi-info-circle me-1"></i>
+              Para demissões, informe Nome, CPF, Data de Desligamento e Motivo do Desligamento. Para Histórico, carregue as bases mensais em ordem ou selecione várias de uma vez; o sistema compara os meses, identifica mudanças e pede confirmação antes de considerar ausências como desligamentos.
+            </div>
+
+            <div id="msgMassa" class="alert mt-3 d-none"></div>
+          </div>
+
+          <!-- ABA 3: QUADRO ATIVO -->
+          <div class="tab-pane fade" id="consulta">
+            <div class="top-section">
+              <div>
+                <h4 class="mb-0 fw-bold">Quadro de Colaboradores Ativos</h4>
+                <div class="subtext" id="totalAtivos">Carregando...</div>
+              </div>
+              <button onclick="carregarQuadroAtivo()" class="btn btn-outline-primary btn-sm"><i class="bi bi-arrow-clockwise me-1"></i> Atualizar Lista</button>
+            </div>
+            <div class="search-box">
+              <div class="input-group input-group-sm">
+                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                <input type="text" id="campoBusca" onkeyup="aplicarFiltrosQuadroAtivo()" class="form-control" placeholder="Busca rápida global...">
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table class="erp-table table-hover align-middle">
+                <thead>
+                  <tr class="title-row">
+                    <th class="row-number">#</th>
+                    <th class="action-cell">Ações</th>
+                    <th><span class="th-title">Nome</span></th>
+                    <th><span class="th-title">Email</span></th>
+                    <th><span class="th-title">CPF</span></th>
+                    <th><span class="th-title">Sexo</span></th>
+                    <th><span class="th-title">Celular</span></th>
+                    <th><span class="th-title">Dt. Nascimento</span></th>
+                    <th><span class="th-title">Dt. Contratação</span></th>
+                    <th><span class="th-title">Cargo</span></th>
+                    <th><span class="th-title">Unid. Negócio</span></th>
+                    <th><span class="th-title">Líder / Supervisor</span></th>
+                  </tr>
+                  <tr class="filter-row">
+                    <th class="row-number"></th><th class="action-cell"></th>
+                    <th><input type="text" class="table-filter" id="colFltNome" oninput="aplicarFiltrosQuadroAtivo()" placeholder="Filtrar nome..."></th>
+                    <th><input type="text" class="table-filter" id="colFltEmail" oninput="aplicarFiltrosQuadroAtivo()" placeholder="Filtrar email..."></th>
+                    <th><input type="text" class="table-filter" id="colFltCpf" oninput="aplicarFiltrosQuadroAtivo()" placeholder="Filtrar CPF..."></th>
+                    <th><select class="table-filter" id="colFltSexo" onchange="aplicarFiltrosQuadroAtivo()"><option value="">Todos</option><option>Masculino</option><option>Feminino</option><option>Outro</option></select></th>
+                    <th><input type="text" class="table-filter" id="colFltCelular" oninput="aplicarFiltrosQuadroAtivo()" placeholder="Filtrar celular..."></th>
+                    <th><input type="date" class="table-filter" id="colFltNascimento" onchange="aplicarFiltrosQuadroAtivo()" title="Data de nascimento"></th>
+                    <th><input type="date" class="table-filter" id="colFltContratacao" onchange="aplicarFiltrosQuadroAtivo()" title="Data de contratação"></th>
+                    <th><input type="text" class="table-filter" id="colFltCargo" oninput="aplicarFiltrosQuadroAtivo()" placeholder="Filtrar cargo..."></th>
+                    <th><input type="text" class="table-filter" id="colFltLoja" oninput="aplicarFiltrosQuadroAtivo()" placeholder="Filtrar unidade..."></th>
+                    <th><input type="text" class="table-filter" id="colFltLider" oninput="aplicarFiltrosQuadroAtivo()" placeholder="Filtrar líder..."></th>
+                  </tr>
+                </thead>
+                <tbody id="corpoTabela"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- ABA: ORGANOGRAMA -->
+          <div class="tab-pane fade" id="organograma">
+            <div class="top-section">
+              <div>
+                <h4 class="mb-0 fw-bold"><i class="bi bi-diagram-3-fill me-2"></i>Organograma</h4>
+                <div class="subtext">Estrutura atual dos colaboradores ativos, baseada no campo Líderes / Supervisor da base.</div>
+              </div>
+              <button onclick="carregarOrganograma()" class="btn btn-outline-primary btn-sm"><i class="bi bi-arrow-clockwise me-1"></i> Atualizar</button>
+            </div>
+            <div class="org-toolbar">
+              <div class="org-field search"><label class="form-label fw-semibold mb-1">Buscar colaborador</label><input id="orgBusca" class="form-control form-control-sm" type="text" placeholder="Nome, cargo, loja ou supervisor..." oninput="aplicarFiltrosOrganograma()"></div>
+              <div class="org-field"><label class="form-label fw-semibold mb-1">Unidade Geográfica</label><select id="orgGeo" class="form-select form-select-sm" onchange="aplicarFiltrosOrganograma()"><option value="">Todas</option></select></div>
+              <div class="org-field"><label class="form-label fw-semibold mb-1">Unidade de Negócio / Loja</label><select id="orgLoja" class="form-select form-select-sm" onchange="aplicarFiltrosOrganograma()"><option value="">Todas</option></select></div>
+              <button type="button" class="btn btn-outline-secondary btn-sm" onclick="expandirOrganograma(true)"><i class="bi bi-arrows-expand me-1"></i> Expandir tudo</button>
+              <button type="button" class="btn btn-outline-secondary btn-sm" onclick="expandirOrganograma(false)"><i class="bi bi-arrows-collapse me-1"></i> Recolher tudo</button>
+            </div>
+            <div id="orgResumo" class="org-summary"></div>
+            <div id="orgUnresolved" class="d-none"></div>
+            <div class="org-canvas">
+              <div class="org-scroll"><div id="orgTreeContainer"><div class="org-empty">Clique em <strong>Atualizar</strong> para carregar o organograma.</div></div></div>
+              <div class="org-zoom-controls" role="group" aria-label="Controles de zoom do organograma. Também é possível usar pinça no touchpad ou Ctrl + roda do mouse.">
+                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="alterarZoomOrganograma(-10)" title="Diminuir zoom"><i class="bi bi-dash-lg"></i></button>
+                <button type="button" class="btn btn-outline-secondary btn-sm org-zoom-value" id="orgZoomValue" onclick="resetarZoomOrganograma()" title="Restaurar zoom">100%</button>
+                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="alterarZoomOrganograma(10)" title="Aumentar zoom"><i class="bi bi-plus-lg"></i></button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ABA 4: AVALIAÇÃO DE EXPERIÊNCIA E CALENDÁRIO -->
+          <div class="tab-pane fade" id="experiencia">
+            <div class="top-section">
+              <div>
+                <h4 class="fw-bold mb-0"><i class="bi bi-calendar3 me-2"></i>Acompanhamento de Experiência</h4>
+                <div class="subtext">Exibindo apenas admitidos nos últimos 90 dias a partir de hoje</div>
+              </div>
+              <button onclick="carregarAvaliacoes()" class="btn btn-outline-primary btn-sm"><i class="bi bi-arrow-clockwise me-1"></i> Recarregar Dados</button>
+            </div>
+
+            <div class="consulta-link-card" id="cardLinkConsultaGestores">
+              <div class="consulta-link-info">
+                <div class="consulta-link-icon"><i class="bi bi-link-45deg"></i></div>
+                <div style="min-width:0;">
+                  <div class="consulta-link-title">Link de consulta para gestores</div>
+                  <div class="consulta-link-sub">Compartilhe este link para que os gestores consultem o calendário sem acessar o ERP.</div>
+                  <div class="consulta-link-value" id="linkConsultaGestores">Gerando link de consulta...</div>
+                </div>
+              </div>
+              <button type="button" class="btn-copiar-consulta" id="btnCopiarLinkConsulta" onclick="copiarLinkConsultaGestores()" disabled>
+                <i class="bi bi-copy" id="iconeCopiarLinkConsulta"></i><span id="textoCopiarLinkConsulta">Copiar link</span>
+              </button>
+            </div>
+
+            <div class="filters-card mb-3">
+              <div class="row g-2">
+                <div class="col-md-2"><label>Supervisor</label><select id="fltExpSupervisor" class="form-select form-select-sm" onchange="aplicarFiltrosExperiencia()"><option value="">Todos</option></select></div>
+                <div class="col-md-2"><label>Loja / Unidade</label><select id="fltExpLoja" class="form-select form-select-sm" onchange="aplicarFiltrosExperiencia()"><option value="">Todas</option></select></div>
+                <div class="col-md-2"><label>Mês de Vencimento</label><input type="month" id="fltExpMes" class="form-control form-control-sm" onchange="aplicarFiltrosExperiencia()"></div>
+                <div class="col-md-2"><label>Status Avaliação</label><select id="fltExpStatus" class="form-select form-select-sm" onchange="aplicarFiltrosExperiencia()"><option value="">Todos</option><option value="A Vencer">A Vencer</option><option value="Vencido">Vencido</option><option value="Feito">Feito</option></select></div>
+                <div class="col-md-2"><label>Período de Experiência</label>
+                  <details class="period-filter-details" id="fltExpPeriodos">
+                    <summary id="fltExpPeriodosResumo">Todos os períodos</summary>
+                    <div class="period-filter-panel">
+                      <label class="period-filter-option"><input type="checkbox" value="todos" checked onchange="alterarSelecaoPeriodosExperiencia(this)"> Todos</label>
+                      <div class="period-filter-separator"></div>
+                      <label class="period-filter-option"><input type="checkbox" value="30" checked onchange="alterarSelecaoPeriodosExperiencia(this)"> 30 dias</label>
+                      <label class="period-filter-option"><input type="checkbox" value="45" checked onchange="alterarSelecaoPeriodosExperiencia(this)"> 45 dias</label>
+                      <label class="period-filter-option"><input type="checkbox" value="60" checked onchange="alterarSelecaoPeriodosExperiencia(this)"> 60 dias</label>
+                      <label class="period-filter-option"><input type="checkbox" value="75" checked onchange="alterarSelecaoPeriodosExperiencia(this)"> 75 dias</label>
+                      <label class="period-filter-option"><input type="checkbox" value="90" checked onchange="alterarSelecaoPeriodosExperiencia(this)"> 90 dias</label>
+                    </div>
+                  </details>
+                </div>
+                <div class="col-md-2"><label>Classificação / Ordem</label><select id="fltExpOrdem" class="form-select form-select-sm" onchange="aplicarFiltrosExperiencia()"><option value="nome_asc">Nome (A-Z)</option><option value="nome_desc">Nome (Z-A)</option><option value="data_asc">Cronológico (Mais Antigo)</option><option value="data_desc">Cronológico (Mais Recente)</option></select></div>
+              </div>            </div>
+
+            <div class="experience-layout">
+              <!-- CALENDÁRIO FICA ACIMA DA LISTA -->
+              <div class="panel calendar-panel">
+                <div class="panel-header">
+                  <h5 class="panel-title"><i class="bi bi-calendar-event me-1"></i>Calendário de Vencimentos</h5>
+                </div>
+                <div class="legend">
+                  <span><span class="legend-dot dot-danger"></span>Vencido</span>
+                  <span><span class="legend-dot dot-warning"></span>A Vencer</span>
+                  <span><span class="legend-dot dot-success"></span>Feito</span>
+                </div>
+                <div class="calendar-toolbar">
+                  <button type="button" id="btnMesAnterior" class="calendar-nav-btn" onclick="mudarMesCalendario(-1)" title="Mês anterior"><i class="bi bi-chevron-left"></i></button>
+                  <div><h6 id="tituloMesCalendario" class="calendar-title">mês de ano</h6></div>
+                  <button type="button" id="btnProximoMes" class="calendar-nav-btn" onclick="mudarMesCalendario(1)" title="Próximo mês"><i class="bi bi-chevron-right"></i></button>
+                </div>
+                <div class="text-center pb-2"><button type="button" class="calendar-today" onclick="irParaHojeCalendario()">Hoje</button></div>
+                <div class="calendar-grid mb-1">
+                  <div class="calendar-day-header">Dom</div><div class="calendar-day-header">Seg</div><div class="calendar-day-header">Ter</div><div class="calendar-day-header">Qua</div><div class="calendar-day-header">Qui</div><div class="calendar-day-header">Sex</div><div class="calendar-day-header">Sáb</div>
+                </div>
+                <div class="calendar-grid" id="gradeCalendario"></div>
+                <div class="calendar-limit-note">Navegação limitada a 3 meses antes e 3 meses depois do mês atual. Cada dia possui rolagem própria para visualizar todos os vencimentos.</div>
+              </div>
+
+              <!-- LISTA FICA ABAIXO DO CALENDÁRIO -->
+              <div class="panel experience-list-panel">
+                <div class="panel-header">
+                  <h5 class="panel-title"><i class="bi bi-list-check me-1"></i> Lista de Avaliações</h5>
+                  <span class="subtext" id="totalExperiencia"></span>
+                </div>
+                <div class="legend">
+                  <span><span class="legend-dot dot-danger"></span>Vencido</span>
+                  <span><span class="legend-dot dot-warning"></span>A Vencer</span>
+                  <span><span class="legend-dot dot-success"></span>Feito</span>
+                </div>
+                <div class="experience-table-wrap">
+                  <table class="erp-table experience-table align-middle">
+                    <thead>
+                      <tr>
+                        <th class="row-number">#</th><th>Nome</th><th>Cargo</th><th>Gerência</th><th>Loja</th><th>Supervisor</th><th>Admissão</th><th>15 dias</th><th>Status 15d</th><th>30 dias</th><th>Status 30d</th><th>45 dias</th><th>Status 45d</th><th>60 dias</th><th>Status 60d</th><th>75 dias</th><th>Status 75d</th><th>90 dias</th><th>Status 90d</th>
+                      </tr>
+                    </thead>
+                    <tbody id="corpoExperiencia"><tr><td colspan="19" class="text-center py-3 text-muted">Buscando prazos de experiência...</td></tr></tbody>
+                  </table>
+                </div>
+                <div class="experience-pagination">
+                  <label class="page-size-label">Exibindo até 10 avaliações por página</label>
+                  <div class="pagination-buttons" id="paginacaoExperiencia"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ABA 5: ANIVERSARIANTES -->
+          <div class="tab-pane fade" id="aniversarios">
+            <div class="top-section">
+              <div>
+                <h4 class="fw-bold mb-0"><i class="bi bi-gift-fill me-2"></i>Aniversariantes do Dia</h4>
+                <div class="subtext" id="dataAniversariantesHoje">Carregando data...</div>
+              </div>
+              <button onclick="carregarAniversariantesHoje()" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-arrow-clockwise me-1"></i> Atualizar
+              </button>
+            </div>
+
+            <div class="birthday-grid">
+              <div class="birthday-card">
+                <div class="birthday-card-header">
+                  <h5 class="birthday-card-title"><i class="bi bi-balloon-fill me-1"></i>Aniversariantes</h5>
+                  <span class="birthday-count" id="totalAniversariosPessoa">0 pessoas</span>
+                </div>
+                <div class="birthday-list" id="corpoAniversariosPessoa">
+                  <div class="birthday-empty">Carregando...</div>
+                </div>
+              </div>
+
+              <div class="birthday-card">
+                <div class="birthday-card-header">
+                  <h5 class="birthday-card-title"><i class="bi bi-building-fill me-1"></i>Aniversariantes de Empresa</h5>
+                  <span class="birthday-count" id="totalAniversariosEmpresa">0 pessoas</span>
+                </div>
+                <div class="birthday-list" id="corpoAniversariosEmpresa">
+                  <div class="birthday-empty">Carregando...</div>
+                </div>
+              </div>
+            </div>
+
+            <div id="msgAniversariantes" class="alert mt-3 d-none"></div>
+          </div>
+
+          <!-- ABA 6: DEMITIDOS DO MÊS -->
+          <div class="tab-pane fade" id="demitidos">
+            <div class="top-section">
+              <div>
+                <h4 class="fw-bold mb-0"><i class="bi bi-person-x-fill me-2"></i>Demitidos do Mês</h4>
+                <div class="subtext">Consulte os desligamentos registrados na base por mês e ano.</div>
+              </div>
+              <button onclick="carregarDemitidosMes()" class="btn btn-outline-primary btn-sm"><i class="bi bi-arrow-clockwise me-1"></i> Atualizar</button>
+            </div>
+
+            <div class="demitidos-filtros">
+              <div>
+                <label class="form-label fw-semibold">Mês</label>
+                <div class="dropdown">
+                  <button class="btn btn-outline-secondary btn-sm dropdown-toggle w-100 text-start demitidos-mes-btn" type="button" id="btnFiltroDemitidosMes" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">Selecionar meses</button>
+                  <div class="dropdown-menu p-2" aria-labelledby="btnFiltroDemitidosMes" style="min-width:220px;max-height:330px;overflow:auto;">
+                    <div class="form-check"><input class="form-check-input filtro-demitido-mes" type="checkbox" value="1" id="demMes1"><label class="form-check-label" for="demMes1">Janeiro</label></div>
+                    <div class="form-check"><input class="form-check-input filtro-demitido-mes" type="checkbox" value="2" id="demMes2"><label class="form-check-label" for="demMes2">Fevereiro</label></div>
+                    <div class="form-check"><input class="form-check-input filtro-demitido-mes" type="checkbox" value="3" id="demMes3"><label class="form-check-label" for="demMes3">Março</label></div>
+                    <div class="form-check"><input class="form-check-input filtro-demitido-mes" type="checkbox" value="4" id="demMes4"><label class="form-check-label" for="demMes4">Abril</label></div>
+                    <div class="form-check"><input class="form-check-input filtro-demitido-mes" type="checkbox" value="5" id="demMes5"><label class="form-check-label" for="demMes5">Maio</label></div>
+                    <div class="form-check"><input class="form-check-input filtro-demitido-mes" type="checkbox" value="6" id="demMes6"><label class="form-check-label" for="demMes6">Junho</label></div>
+                    <div class="form-check"><input class="form-check-input filtro-demitido-mes" type="checkbox" value="7" id="demMes7"><label class="form-check-label" for="demMes7">Julho</label></div>
+                    <div class="form-check"><input class="form-check-input filtro-demitido-mes" type="checkbox" value="8" id="demMes8"><label class="form-check-label" for="demMes8">Agosto</label></div>
+                    <div class="form-check"><input class="form-check-input filtro-demitido-mes" type="checkbox" value="9" id="demMes9"><label class="form-check-label" for="demMes9">Setembro</label></div>
+                    <div class="form-check"><input class="form-check-input filtro-demitido-mes" type="checkbox" value="10" id="demMes10"><label class="form-check-label" for="demMes10">Outubro</label></div>
+                    <div class="form-check"><input class="form-check-input filtro-demitido-mes" type="checkbox" value="11" id="demMes11"><label class="form-check-label" for="demMes11">Novembro</label></div>
+                    <div class="form-check"><input class="form-check-input filtro-demitido-mes" type="checkbox" value="12" id="demMes12"><label class="form-check-label" for="demMes12">Dezembro</label></div>
+                    <div class="border-top mt-2 pt-2 d-flex gap-2"><button type="button" class="btn btn-light btn-sm" onclick="selecionarTodosMesesDemitidos()">Todos</button><button type="button" class="btn btn-light btn-sm" onclick="limparMesesDemitidos()">Limpar</button></div>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <label class="form-label fw-semibold">Ano</label>
+                <select id="filtroDemitidosAno" class="form-select form-select-sm" onchange="carregarDemitidosMes()"></select>
+              </div>
+              <div class="demitidos-total-box">
+                <span>Total de desligados</span>
+                <strong id="totalDemitidosMes">0</strong>
+              </div>
+            </div>
+
+            <div class="demitidos-pesquisa">
+              <div><label class="form-label fw-semibold">Busca</label><input id="buscaDemitidos" type="text" class="form-control form-control-sm" placeholder="Nome, CPF, cargo, loja, supervisor ou motivo..." oninput="aplicarFiltrosDemitidos()"></div>
+            </div>
+
+            <div class="demitidos-table-wrap">
+              <table class="table table-sm demitidos-table mb-0">
+                <thead>
+                  <tr><th>#</th><th>Nome</th><th>CPF</th><th>Data de Desligamento</th><th>Motivo do Desligamento</th><th>Cargo</th><th>Loja / Unidade</th><th>Supervisor</th></tr>
+                </thead>
+                <tbody id="corpoDemitidosMes"><tr><td colspan="8" class="text-center text-muted py-4">Selecione o mês/ano ou aguarde o carregamento...</td></tr></tbody>
+              </table>
+            </div>
+            <div id="msgDemitidos" class="alert mt-3 d-none"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+    </div>
+    </div>
+
+    <!-- MODAL PARA EDIÇÃO RÁPIDA DE COLABORADOR -->
+    <div class="modal fade" id="modalEdicao" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title fw-bold"><i class="bi bi-pencil-square me-2"></i>Editar Registro do Colaborador</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form id="formEdicao" onsubmit="salvarEdicaoModal(event)">
+              <input type="hidden" id="editLinhaPlanilha">
+              <div class="row">
+                <div class="col-md-6 mb-3"><label class="form-label fw-semibold">Nome Completo</label><input type="text" id="editNome" class="form-control" required></div>
+                <div class="col-md-6 mb-3"><label class="form-label fw-semibold" id="editEmailLabel">Email</label><input type="email" id="editEmail" class="form-control" required></div>
+              </div>
+              <div class="row">
+                <div class="col-md-4 mb-3"><label class="form-label fw-semibold">CPF</label><input type="text" id="editCpf" class="form-control" oninput="aplicarMascaraCPF(this)" maxlength="14" required></div>
+                <div class="col-md-4 mb-3">
+                  <label class="form-label fw-semibold">Sexo</label>
+                  <select id="editSexo" class="form-select"><option value="Masculino">Masculino</option><option value="Feminino">Feminino</option><option value="Outro">Outro</option></select>
+                </div>
+                <div class="col-md-4 mb-3"><label class="form-label fw-semibold">Celular</label><input type="text" id="editCelular" class="form-control" oninput="aplicarMascaraTelefone(this)" maxlength="15"></div>
+              </div>
+              <div class="row">
+                <div class="col-md-4 mb-3"><label class="form-label fw-semibold">Data Nasc.</label><input type="date" id="editDataNascimento" class="form-control"></div>
+                <div class="col-md-4 mb-3"><label class="form-label fw-semibold">Data Contratação</label><input type="date" id="editDataContratacao" class="form-control" required></div>
+                <div class="col-md-4 mb-3"><label class="form-label fw-semibold">Cargo</label><input type="text" id="editCargo" class="form-control" required></div>
+              </div>
+              <div class="row">
+                <div class="col-md-4 mb-3"><label class="form-label fw-semibold">Formação</label><input type="text" id="editFormacao" class="form-control"></div>
+                <div class="col-md-4 mb-3"><label class="form-label fw-semibold">Unid. Geográfica / Gerência</label><input type="text" id="editUnidadeGeografica" class="form-control"></div>
+                <div class="col-md-4 mb-3"><label class="form-label fw-semibold">Unid. Negócio / Loja</label><input type="text" id="editUnidadeNegocio" class="form-control"></div>
+              </div>
+              <div class="row">
+                <div class="col-md-4 mb-3"><label class="form-label fw-semibold">Grupos</label><input type="text" id="editGrupos" class="form-control"></div>
+                <div class="col-md-4 mb-3"><label class="form-label fw-semibold">Líderes / Supervisor</label><input type="text" id="editLideres" class="form-control"></div>
+                <div class="col-md-4 mb-3"><label class="form-label fw-semibold">Tags</label><input type="text" id="editTags" class="form-control"></div>
+              </div>
+              <div class="row">
+                <div class="col-md-4 mb-3"><label class="form-label fw-semibold">Data Desligamento</label><input type="date" id="editDataDesligamento" class="form-control"></div>
+                <div class="col-md-4 mb-3"><label class="form-label fw-semibold">Tipo Desligamento</label><select id="editTipoDesligamento" class="form-select"><option value="">Não informado</option><option value="Sem justa causa">Sem justa causa</option><option value="Por justa causa">Por justa causa</option><option value="Pedido de demissão">Pedido de demissão</option><option value="Demissão consensual">Demissão consensual</option><option value="Rescisão indireta">Rescisão indireta</option></select></div>
+                <div class="col-md-4 mb-3">
+                  <label class="form-label fw-semibold">Bloquear</label>
+                  <select id="editBloquear" class="form-select"><option value="Não">Não</option><option value="Sim">Sim</option></select>
+                </div>
+              </div>
+              <div class="modal-footer px-0 pb-0 pt-3">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" id="btnSalvarModal" class="btn btn-primary fw-bold">Salvar Alterações</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- MODAL: CONFIRMAÇÃO DA MOVIMENTAÇÃO -->
+    <div class="modal fade" id="modalMovimentacao" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header"><h5 class="modal-title fw-bold"><i class="bi bi-arrow-left-right me-2"></i>Registrar Movimentação</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+          <div class="modal-body">
+            <div class="movement-question" id="movResumoAlteracoes">Foram detectadas alterações de cargo, loja ou supervisor.</div>
+            <div class="mb-3"><label class="form-label fw-semibold">Tipo de movimentação</label><select id="movTipo" class="form-select"><option>Promoção</option><option>Transferência de Loja</option><option>Transferência de Unidade</option><option>Alteração de Cargo</option><option>Alteração de Supervisor</option><option>Promoção + Transferência</option><option>Outro</option></select></div>
+            <div class="mb-3"><label class="form-label fw-semibold">Data da movimentação</label><input type="date" id="movData" class="form-control"></div>
+            <div class="mb-3"><label class="form-label fw-semibold">Observação <span class="text-muted fw-normal">(opcional)</span></label><textarea id="movObservacao" class="form-control" rows="3"></textarea></div>
+          </div>
+          <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button><button type="button" class="btn btn-primary fw-bold" onclick="confirmarMovimentacaoEdicao()">Confirmar e Salvar</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: HISTÓRICO DO COLABORADOR -->
+    <div class="modal fade" id="modalHistorico" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header"><h5 class="modal-title fw-bold"><i class="bi bi-clock-history me-2"></i>Histórico de Movimentações</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+          <div class="modal-body" id="corpoHistorico"><div class="text-center text-muted py-4"><div class="spinner-border spinner-border-sm me-2"></div>Carregando histórico...</div></div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- MODAL: RECONSTRUÇÃO HISTÓRICA -->
+    <div class="modal fade" id="modalHistoricoCarga" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title fw-bold"><i class="bi bi-clock-history me-2"></i>Reconstrução do Histórico</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body" id="corpoHistoricoCarga"></div>
+          <div class="modal-footer history-confirm-footer">
+            <span id="historicoCargaRodape" class="text-muted" style="font-size:.65rem"></span>
+            <div><button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button> <button type="button" class="btn btn-primary btn-sm fw-bold" id="btnConfirmarHistoricoCarga" onclick="confirmarCargaHistorico()">Confirmar reconstrução</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>window.ERP_MODO_CONSULTA_GESTORES = <?!= modoConsultaGestores ? 'true' : 'false' ?>;</script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+      var listaColaboradoresGlobal = [];
+      var listaExperienciaGlobal = [];
+      var modalEdicaoInstance = null;
+      var modalMovimentacaoInstance = null;
+      var modalHistoricoInstance = null;
+      var modalHistoricoCargaInstance = null;
+      var dadosAnaliseHistoricoPendente = null;
+      var dadosEdicaoPendente = null;
+      var colaboradorEdicaoOriginal = null;
+      var paginaExperienciaAtual = 1;
+      var tamanhoPaginaExperiencia = 10;
+
+      document.addEventListener("DOMContentLoaded", function() {
+        modalEdicaoInstance = new bootstrap.Modal(document.getElementById('modalEdicao'));
+        modalMovimentacaoInstance = new bootstrap.Modal(document.getElementById('modalMovimentacao'));
+        modalHistoricoInstance = new bootstrap.Modal(document.getElementById('modalHistorico'));
+        modalHistoricoCargaInstance = new bootstrap.Modal(document.getElementById('modalHistoricoCarga'));
+        document.querySelectorAll('.filtro-demitido-mes').forEach(function(c){c.addEventListener('change',function(){atualizarResumoMesesDemitidos();carregarDemitidosMes();});});
+
+        /* Corrige definitivamente o dropdown de meses: ao abrir, ele vai para o body e usa
+           coordenadas da janela, escapando de qualquer overflow/recorte dos cards e tabs. */
+        var btnMeses = document.getElementById('btnFiltroDemitidosMes');
+        if (btnMeses) {
+          btnMeses.addEventListener('shown.bs.dropdown', function(){ posicionarDropdownMesesDemitidos(); });
+          btnMeses.addEventListener('hide.bs.dropdown', function(){ restaurarDropdownMesesDemitidos(); });
+        }
+        if (!window.ERP_MODO_CONSULTA_GESTORES) setTimeout(carregarLinkConsultaGestores, 0);
+        else setTimeout(configurarModoConsultaGestores, 0);
+      });
+
+      function posicionarDropdownMesesDemitidos() {
+        var btn = document.getElementById('btnFiltroDemitidosMes');
+        if (!btn) return;
+        var menu = btn.parentElement ? btn.parentElement.querySelector('.dropdown-menu') : null;
+        if (!menu) return;
+        if (!menu.dataset.portalOriginalParent) {
+          menu.dataset.portalOriginalParent = 'true';
+          menu.dataset.portalOriginalStyle = menu.getAttribute('style') || '';
+          menu.dataset.portalOriginalNext = menu.nextElementSibling ? menu.nextElementSibling.id || '' : '';
+        }
+        if (menu.parentElement !== document.body) document.body.appendChild(menu);
+        menu.id = 'dropdownMesesDemitidosPortal';
+        menu.classList.add('show');
+        var r = btn.getBoundingClientRect();
+        var margem = 4;
+        var largura = Math.max(r.width, 220);
+        var altura = Math.min(menu.scrollHeight || 340, 340);
+        var left = Math.max(8, Math.min(r.left, window.innerWidth - largura - 8));
+        var top = r.bottom + margem;
+        if (top + altura > window.innerHeight - 8 && r.top - altura - margem >= 8) top = r.top - altura - margem;
+        menu.style.left = Math.round(left) + 'px';
+        menu.style.top = Math.round(top) + 'px';
+        menu.style.width = Math.round(largura) + 'px';
+        menu.style.minWidth = Math.round(largura) + 'px';
+      }
+
+      function restaurarDropdownMesesDemitidos() {
+        var menu = document.getElementById('dropdownMesesDemitidosPortal');
+        var btn = document.getElementById('btnFiltroDemitidosMes');
+        if (!menu || !btn) return;
+        var parent = btn.parentElement;
+        if (parent && menu.parentElement === document.body) parent.appendChild(menu);
+        menu.removeAttribute('id');
+        menu.classList.remove('show');
+        menu.setAttribute('style', menu.dataset.portalOriginalStyle || 'min-width:220px;max-height:330px;overflow:auto;');
+      }
+
+      window.addEventListener('resize', function(){
+        var menu = document.getElementById('dropdownMesesDemitidosPortal');
+        var btn = document.getElementById('btnFiltroDemitidosMes');
+        if (menu && menu.classList.contains('show') && btn) posicionarDropdownMesesDemitidos();
+      });
+      window.addEventListener('scroll', function(){
+        var menu = document.getElementById('dropdownMesesDemitidosPortal');
+        var btn = document.getElementById('btnFiltroDemitidosMes');
+        if (menu && menu.classList.contains('show') && btn) posicionarDropdownMesesDemitidos();
+      }, true);
+
+      function esc(value) {
+        return String(value == null ? "" : value)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+      
+      function escAttr(value) {
+        return esc(value);
+      }
+
+      function abrirWhatsApp(numero) {
+        var digits = String(numero == null ? "" : numero).replace(/\D/g, "");
+        if (!digits) return;
+        if (digits.indexOf("55") !== 0 && (digits.length === 10 || digits.length === 11)) {
+          digits = "55" + digits;
+        }
+        window.open("https://wa.me/" + digits, "_blank");
+      }
+
+      function abrirEmail(email) {
+        var endereco = String(email == null ? "" : email).trim();
+        if (!endereco) return;
+        window.location.href = "mailto:" + endereco;
+      }
+
+      // MÁSCARAS DE ENTRADA
+      function aplicarMascaraCPF(v) {
+        var value = v.value.replace(/\D/g, "");
+        value = value.replace(/(\d{3})(\d)/, "$1.$2");
+        value = value.replace(/(\d{3})(\d)/, "$1.$2");
+        value = value.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+        v.value = value;
+      }
+
+      function aplicarMascaraTelefone(v) {
+        var value = v.value.replace(/\D/g, "");
+        value = value.replace(/^(\d{2})(\d)/g, "($1) $2");
+        value = value.replace(/(\d)(\d{4})$/, "$1-$2");
+        v.value = value;
+      }
+
+      // 1. CADASTRO MANUAL
+      function enviarFormularioManual(event) {
+        event.preventDefault();
+        var btn = document.getElementById("btnSalvarManual");
+        var msgDiv = document.getElementById("msgManual");
+        btn.disabled = true;
+        btn.innerText = "Salvando...";
+
+        var dados = {
+          nome: document.getElementById("nome").value,
+          email: document.getElementById("email").value,
+          cpf: document.getElementById("cpf").value,
+          sexo: document.getElementById("sexo").value,
+          celular: document.getElementById("celular").value,
+          dataNascimento: document.getElementById("dataNascimento").value,
+          dataContratacao: document.getElementById("dataContratacao").value,
+          formacao: document.getElementById("formacao").value,
+          cargo: document.getElementById("cargo").value,
+          tags: document.getElementById("tags").value,
+          unidadeGeografica: document.getElementById("unidadeGeografica").value,
+          unidadeNegocio: document.getElementById("unidadeNegocio").value,
+          grupos: document.getElementById("grupos").value,
+          lideres: document.getElementById("lideres").value,
+          dataDesligamento: document.getElementById("dataDesligamento").value,
+          tipoDesligamento: document.getElementById("tipoDesligamento").value,
+          bloquear: document.getElementById("bloquear").value
+        };
+
+        google.script.run
+          .withSuccessHandler(function(res) {
+            msgDiv.className = "alert mt-3 alert-success";
+            msgDiv.innerText = res.mensagem;
+            document.getElementById("formCadastro").reset();
+            btn.disabled = false;
+            btn.innerText = "Cadastrar Colaborador";
+          })
+          .withFailureHandler(function(err) {
+            msgDiv.className = "alert mt-3 alert-danger";
+            msgDiv.innerText = "Erro ao salvar: " + err;
+            btn.disabled = false;
+            btn.innerText = "Cadastrar Colaborador";
+          })
+          .salvarFuncionario(dados);
+      }
+
+      // 2. QUADRO ATIVO COM BUSCA GLOBAL E COLUNAS
+      function carregarQuadroAtivo() {
+        var corpo = document.getElementById("corpoTabela");
+        corpo.innerHTML = '<tr><td colspan="12" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm me-2"></div>Buscando...</td></tr>';
+
+        google.script.run.withSuccessHandler(function(resposta) {
+          if (resposta.sucesso) {
+            listaColaboradoresGlobal = resposta.dados;
+            renderizarQuadroAtivo(listaColaboradoresGlobal);
+          } else {
+            corpo.innerHTML = '<tr><td colspan="12" class="text-center text-danger py-3">'+resposta.mensagem+'</td></tr>';
+          }
+        }).buscarQuadroAtivo();
+      }
+
+      function renderizarQuadroAtivo(lista) {
+        var corpo = document.getElementById("corpoTabela");
+        document.getElementById("totalAtivos").innerText = "Total: " + lista.length + " colaboradores";
+        
+        if (lista.length === 0) {
+          corpo.innerHTML = '<tr><td colspan="12" class="text-center text-muted py-3">Nenhum registro encontrado.</td></tr>';
+          return;
+        }
+
+        var html = "";
+        lista.forEach(function(item) {
+          html += '<tr>' +
+            '<td class="row-number">'+(lista.indexOf(item) + 1)+'</td>' +
+            '<td class="action-cell"><div class="contact-actions">' +
+              '<button type="button" class="btn-contact btn-whatsapp" onclick="abrirWhatsApp(\''+escAttr(item.celular)+'\')" title="WhatsApp" '+(!item.celular ? 'disabled' : '')+'><i class="bi bi-whatsapp"></i></button>' +
+              '<button type="button" class="btn-contact btn-email" onclick="abrirEmail(\''+escAttr(item.email)+'\')" title="Enviar e-mail" '+(!item.email ? 'disabled' : '')+'><i class="bi bi-envelope-fill"></i></button>' +
+              '<button type="button" class="btn-contact btn-history" onclick="abrirHistoricoFuncionario(\''+escAttr(item.cpf)+'\')" title="Ver movimentações"><i class="bi bi-clock-history"></i></button>' +
+              '<button type="button" class="btn btn-edit-pencil" onclick="abrirEdicao('+item.linhaPlanilha+')" title="Editar"><i class="bi bi-pencil-fill"></i></button>' +
+            '</div></td>' +
+            '<td class="fw-bold text-primary">'+esc(item.nome)+'</td>' +
+            '<td>'+esc(item.email)+'</td>' +
+            '<td>'+esc(item.cpf)+'</td>' +
+            '<td>'+esc(item.sexo)+'</td>' +
+            '<td>'+esc(item.celular)+'</td>' +
+            '<td>'+esc(item.dataNascimento)+'</td>' +
+            '<td>'+esc(item.dataContratacao)+'</td>' +
+            '<td>'+esc(item.cargo)+'</td>' +
+            '<td>'+esc(item.unidadeNegocio)+'</td>' +
+            '<td>'+esc(item.lideres)+'</td>' +
+          '</tr>';
+        });
+        corpo.innerHTML = html;
+      }
+
+      function aplicarFiltrosQuadroAtivo() {
+        var termoGlobal = document.getElementById("campoBusca").value.toLowerCase();
+        var fltNome = document.getElementById("colFltNome").value.toLowerCase();
+        var fltEmail = document.getElementById("colFltEmail").value.toLowerCase();
+        var fltCpf = document.getElementById("colFltCpf").value.toLowerCase();
+        var fltSexo = document.getElementById("colFltSexo").value.toLowerCase();
+        var fltCelular = document.getElementById("colFltCelular").value.toLowerCase();
+        var fltNascimento = document.getElementById("colFltNascimento").value;
+        var fltContratacao = document.getElementById("colFltContratacao").value;
+        var fltCargo = document.getElementById("colFltCargo").value.toLowerCase();
+        var fltLoja = document.getElementById("colFltLoja").value.toLowerCase();
+        var fltLider = document.getElementById("colFltLider").value.toLowerCase();
+
+        var filtrados = listaColaboradoresGlobal.filter(function(item) {
+          var passGlobal = !termoGlobal || Object.values(item).some(function(v) { return String(v).toLowerCase().includes(termoGlobal); });
+          var passNome = !fltNome || String(item.nome || "").toLowerCase().includes(fltNome);
+          var passEmail = !fltEmail || String(item.email || "").toLowerCase().includes(fltEmail);
+          var passCpf = !fltCpf || String(item.cpf || "").toLowerCase().includes(fltCpf);
+          var passSexo = !fltSexo || String(item.sexo || "").toLowerCase() === fltSexo;
+          var passCelular = !fltCelular || String(item.celular || "").toLowerCase().includes(fltCelular);
+          var passNascimento = !fltNascimento || String(item.dataNascimentoISO || "") === fltNascimento;
+          var passContratacao = !fltContratacao || String(item.dataContratacaoISO || "") === fltContratacao;
+          var passCargo = !fltCargo || String(item.cargo || "").toLowerCase().includes(fltCargo);
+          var passLoja = !fltLoja || String(item.unidadeNegocio || "").toLowerCase().includes(fltLoja);
+          var passLider = !fltLider || String(item.lideres || "").toLowerCase().includes(fltLider);
+
+          return passGlobal && passNome && passEmail && passCpf && passSexo && passCelular && passNascimento && passContratacao && passCargo && passLoja && passLider;
+        });
+
+        renderizarQuadroAtivo(filtrados);
+      }
+
+      // 3. MODAL DE EDIÇÃO
+      // O e-mail continua obrigatório para alterações/cadastros normais.
+      // Quando o registro estiver sendo transformado em desligamento (data,
+      // motivo ou bloqueio), o e-mail deixa de ser obrigatório.
+      function atualizarObrigatoriedadeEmailDesligamento() {
+        var email = document.getElementById("editEmail");
+        var label = document.getElementById("editEmailLabel");
+        var dataDeslig = document.getElementById("editDataDesligamento");
+        var tipoDeslig = document.getElementById("editTipoDesligamento");
+        var bloquear = document.getElementById("editBloquear");
+        if (!email || !dataDeslig || !tipoDeslig || !bloquear) return;
+
+        var ehDesligamento = !!String(dataDeslig.value || "").trim() ||
+          !!String(tipoDeslig.value || "").trim() ||
+          String(bloquear.value || "").trim().toLowerCase() === "sim";
+
+        email.required = !ehDesligamento;
+        if (label) {
+          label.textContent = ehDesligamento ? "Email (opcional no desligamento)" : "Email";
+        }
+      }
+
+      function abrirEdicao(linhaPlanilha) {
+        var item = listaColaboradoresGlobal.find(function(c) { return c.linhaPlanilha === linhaPlanilha; });
+        if (!item) return;
+        colaboradorEdicaoOriginal = JSON.parse(JSON.stringify(item));
+
+        document.getElementById("editLinhaPlanilha").value = item.linhaPlanilha;
+        document.getElementById("editNome").value = item.nome;
+        document.getElementById("editEmail").value = item.email;
+        document.getElementById("editCpf").value = item.cpf;
+        document.getElementById("editSexo").value = item.sexo || "Masculino";
+        document.getElementById("editCelular").value = item.celular;
+        document.getElementById("editDataNascimento").value = item.dataNascimentoISO;
+        document.getElementById("editDataContratacao").value = item.dataContratacaoISO;
+        document.getElementById("editCargo").value = item.cargo;
+        document.getElementById("editFormacao").value = item.formacao;
+        document.getElementById("editUnidadeGeografica").value = item.unidadeGeografica;
+        document.getElementById("editUnidadeNegocio").value = item.unidadeNegocio;
+        document.getElementById("editGrupos").value = item.grupos;
+        document.getElementById("editLideres").value = item.lideres;
+        document.getElementById("editTags").value = item.tags;
+        document.getElementById("editDataDesligamento").value = item.dataDesligamentoISO;
+        var motivosPermitidosUI = ["Sem justa causa","Por justa causa","Pedido de demissão","Demissão consensual","Rescisão indireta"];
+        document.getElementById("editTipoDesligamento").value = motivosPermitidosUI.indexOf(String(item.tipoDesligamento || "").trim()) >= 0 ? item.tipoDesligamento : "";
+        document.getElementById("editBloquear").value = item.bloquear || "Não";
+        atualizarObrigatoriedadeEmailDesligamento();
+
+        modalEdicaoInstance.show();
+      }
+
+      function inicializarRegraEmailDesligamento() {
+        ["editDataDesligamento", "editTipoDesligamento", "editBloquear"].forEach(function(id) {
+          var el = document.getElementById(id);
+          if (el) el.addEventListener("change", atualizarObrigatoriedadeEmailDesligamento);
+        });
+        atualizarObrigatoriedadeEmailDesligamento();
+      }
+
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", inicializarRegraEmailDesligamento);
+      } else {
+        inicializarRegraEmailDesligamento();
+      }
+
+      function salvarEdicaoModal(event) {
+        event.preventDefault();
+        var btn = document.getElementById("btnSalvarModal");
+        btn.disabled = true;
+        btn.innerText = "Atualizando...";
+
+        var dados = {
+          linhaPlanilha: document.getElementById("editLinhaPlanilha").value,
+          nome: document.getElementById("editNome").value,
+          email: document.getElementById("editEmail").value,
+          cpf: document.getElementById("editCpf").value,
+          sexo: document.getElementById("editSexo").value,
+          celular: document.getElementById("editCelular").value,
+          dataNascimento: document.getElementById("editDataNascimento").value,
+          dataContratacao: document.getElementById("editDataContratacao").value,
+          formacao: document.getElementById("editFormacao").value,
+          cargo: document.getElementById("editCargo").value,
+          tags: document.getElementById("editTags").value,
+          unidadeGeografica: document.getElementById("editUnidadeGeografica").value,
+          unidadeNegocio: document.getElementById("editUnidadeNegocio").value,
+          grupos: document.getElementById("editGrupos").value,
+          lideres: document.getElementById("editLideres").value,
+          dataDesligamento: document.getElementById("editDataDesligamento").value,
+          tipoDesligamento: document.getElementById("editTipoDesligamento").value,
+          bloquear: document.getElementById("editBloquear").value
+        };
+
+        google.script.run
+          .withSuccessHandler(function(res) {
+            btn.disabled = false;
+            btn.innerText = "Salvar Alterações";
+            if (res.sucesso) {
+              modalEdicaoInstance.hide();
+              carregarQuadroAtivo();
+            } else {
+              alert(res.mensagem);
+            }
+          })
+          .withFailureHandler(function(err) {
+            btn.disabled = false;
+            btn.innerText = "Salvar Alterações";
+            alert("Erro ao salvar: " + err);
+          })
+          if (colaboradorEdicaoOriginal) {
+          var mudouCargo = String(colaboradorEdicaoOriginal.cargo || "").trim().toLowerCase() !== String(dados.cargo || "").trim().toLowerCase();
+          var mudouLoja = String(colaboradorEdicaoOriginal.unidadeNegocio || "").trim().toLowerCase() !== String(dados.unidadeNegocio || "").trim().toLowerCase();
+          var mudouSupervisor = String(colaboradorEdicaoOriginal.lideres || "").trim().toLowerCase() !== String(dados.lideres || "").trim().toLowerCase();
+          if (mudouCargo || mudouLoja || mudouSupervisor) {
+            dadosEdicaoPendente = dados;
+            var sugestao = sugerirTipoMovimentacao(mudouCargo, mudouLoja, mudouSupervisor);
+            document.getElementById("movTipo").value = sugestao;
+            document.getElementById("movData").value = new Date().toISOString().substring(0,10);
+            document.getElementById("movObservacao").value = "";
+            document.getElementById("movResumoAlteracoes").innerText = "Alterações detectadas: " + [mudouCargo ? "cargo" : "", mudouLoja ? "loja/unidade" : "", mudouSupervisor ? "supervisor" : ""].filter(Boolean).join(", ") + ". Confirme o tipo e a data da movimentação.";
+            btn.disabled = false; btn.innerText = "Salvar Alterações";
+            modalMovimentacaoInstance.show();
+            return;
+          }
+        }
+        executarSalvarEdicao(dados);
+      }
+
+      function sugerirTipoMovimentacao(mudouCargo, mudouLoja, mudouSupervisor) {
+        if (mudouCargo && mudouLoja && !mudouSupervisor) return "Promoção + Transferência";
+        if (!mudouCargo && mudouLoja && !mudouSupervisor) return "Transferência de Loja";
+        if (!mudouCargo && !mudouLoja && mudouSupervisor) return "Alteração de Supervisor";
+        if (mudouCargo && !mudouLoja && !mudouSupervisor) return "Alteração de Cargo";
+        return "Outro";
+      }
+
+      function confirmarMovimentacaoEdicao() {
+        if (!dadosEdicaoPendente) return;
+        dadosEdicaoPendente.tipoMovimentacao = document.getElementById("movTipo").value;
+        dadosEdicaoPendente.dataMovimentacao = document.getElementById("movData").value;
+        dadosEdicaoPendente.observacaoMovimentacao = document.getElementById("movObservacao").value;
+        modalMovimentacaoInstance.hide();
+        executarSalvarEdicao(dadosEdicaoPendente);
+        dadosEdicaoPendente = null;
+      }
+
+      function executarSalvarEdicao(dados) {
+        var btn = document.getElementById("btnSalvarModal");
+        btn.disabled = true; btn.innerText = "Atualizando...";
+        google.script.run
+          .withSuccessHandler(function(res) {
+            btn.disabled = false; btn.innerText = "Salvar Alterações";
+            if (res.sucesso) { modalEdicaoInstance.hide(); carregarQuadroAtivo(); } else { alert(res.mensagem); }
+          })
+          .withFailureHandler(function(err) { btn.disabled = false; btn.innerText = "Salvar Alterações"; alert("Erro ao salvar: " + err); })
+          .atualizarFuncionario(dados);
+      }
+
+      function carregarLinkConsultaGestores() {
+        if (window.ERP_MODO_CONSULTA_GESTORES) return;
+        var campo = document.getElementById('linkConsultaGestores');
+        var botao = document.getElementById('btnCopiarLinkConsulta');
+        if (!campo || !botao) return;
+        google.script.run.withSuccessHandler(function(url) {
+          campo.textContent = url || 'Link indisponível';
+          campo.dataset.url = url || '';
+          botao.disabled = !url;
+        }).withFailureHandler(function(err) {
+          campo.textContent = 'Não foi possível gerar o link: ' + (err && err.message ? err.message : err);
+          botao.disabled = true;
+        }).obterLinkConsultaGestores();
+      }
+
+      function copiarLinkConsultaGestores() {
+        var campo = document.getElementById('linkConsultaGestores');
+        var botao = document.getElementById('btnCopiarLinkConsulta');
+        var texto = document.getElementById('textoCopiarLinkConsulta');
+        var icone = document.getElementById('iconeCopiarLinkConsulta');
+        var url = campo && campo.dataset ? campo.dataset.url : '';
+        if (!url || !botao) return;
+        function sucesso() {
+          botao.classList.add('copiado');
+          if (texto) texto.textContent = 'Link copiado!';
+          if (icone) icone.className = 'bi bi-check2-circle';
+          setTimeout(function(){ botao.classList.remove('copiado'); if(texto) texto.textContent='Copiar link'; if(icone) icone.className='bi bi-copy'; }, 1800);
+        }
+        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(sucesso).catch(function(){ fallbackCopiarLink(url,sucesso); });
+        else fallbackCopiarLink(url,sucesso);
+      }
+
+      function fallbackCopiarLink(texto, callback) {
+        var area=document.createElement('textarea'); area.value=texto; area.style.position='fixed'; area.style.opacity='0';
+        document.body.appendChild(area); area.focus(); area.select();
+        try { document.execCommand('copy'); if(callback) callback(); } catch(e) { alert('Não foi possível copiar automaticamente. Copie o link exibido na tela.'); }
+        area.remove();
+      }
+
+      function configurarModoConsultaGestores() {
+        if (!window.ERP_MODO_CONSULTA_GESTORES) return;
+        document.body.classList.add('modo-consulta-gestores');
+        document.querySelectorAll('#abaCadastro .nav-link').forEach(function(btn){btn.classList.remove('active');});
+        document.querySelectorAll('#conteudoAbas > .tab-pane').forEach(function(pane){pane.classList.remove('show','active');});
+        var experiencia=document.getElementById('experiencia'); if(experiencia) experiencia.classList.add('show','active');
+        carregarCalendarioConsultaGestores();
+      }
+
+      function carregarCalendarioConsultaGestores() {
+        var corpo=document.getElementById('corpoExperiencia');
+        if(corpo) corpo.innerHTML='<tr><td colspan="19" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm me-2"></div>Carregando calendário...</td></tr>';
+        google.script.run.withSuccessHandler(function(resposta){
+          if(!resposta || !resposta.sucesso){ if(corpo) corpo.innerHTML='<tr><td colspan="19" class="text-center text-danger py-3">'+esc((resposta&&resposta.mensagem)||'Não foi possível carregar o calendário.')+'</td></tr>'; return; }
+          listaExperienciaGlobal=resposta.dados||[]; listaExperienciaGlobalFiltrada=listaExperienciaGlobal; calendarioMesOffset=0; renderizarCalendario(listaExperienciaGlobal);
+        }).withFailureHandler(function(err){ if(corpo) corpo.innerHTML='<tr><td colspan="19" class="text-center text-danger py-3">Erro ao carregar calendário.</td></tr>'; }).buscarCalendarioConsulta();
+      }
+
+      // 4. AVALIAÇÃO DE EXPERIÊNCIA E CALENDÁRIO
+      function carregarAvaliacoes() {
+        atualizarResumoPeriodosExperiencia();
+        var corpo = document.getElementById("corpoExperiencia");
+        corpo.innerHTML = '<tr><td colspan="11" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm me-2"></div>Buscando prazos de experiência...</td></tr>';
+
+        google.script.run.withSuccessHandler(function(resposta) {
+          if (resposta.sucesso) {
+            listaExperienciaGlobal = resposta.dados;
+            paginaExperienciaAtual = 1;
+            calendarioMesOffset = 0;
+            popularOpcoesFiltro();
+            aplicarFiltrosExperiencia();
+          } else {
+            corpo.innerHTML = '<tr><td colspan="11" class="text-center text-danger py-3">'+resposta.mensagem+'</td></tr>';
+          }
+        }).buscarAvaliacaoExperiencia();
+      }
+
+      function popularOpcoesFiltro() {
+        var supervisores = new Set();
+        var lojas = new Set();
+
+        listaExperienciaGlobal.forEach(function(item) {
+          if (item.supervisor && item.supervisor !== "Sem Supervisor") supervisores.add(item.supervisor);
+          if (item.loja && item.loja !== "Sem Loja") lojas.add(item.loja);
+        });
+
+        var listaSupervisores = Array.from(supervisores).sort(function(a,b) {
+          return String(a).localeCompare(String(b), 'pt-BR', { sensitivity:'base' });
+        });
+        var listaLojas = Array.from(lojas).sort(function(a,b) {
+          return String(a).localeCompare(String(b), 'pt-BR', { sensitivity:'base', numeric:true });
+        });
+
+        var selectSup = document.getElementById("fltExpSupervisor");
+        selectSup.innerHTML = '<option value="">Todos</option>';
+        listaSupervisores.forEach(function(sup) {
+          selectSup.innerHTML += '<option value="'+escAttr(sup)+'">'+esc(sup)+'</option>';
+        });
+
+        var selectLoja = document.getElementById("fltExpLoja");
+        selectLoja.innerHTML = '<option value="">Todas</option>';
+        listaLojas.forEach(function(loja) {
+          selectLoja.innerHTML += '<option value="'+escAttr(loja)+'">'+esc(loja)+'</option>';
+        });
+      }
+
+      function obterPeriodosExperienciaSelecionados() {
+        var container = document.getElementById("fltExpPeriodos");
+        if (!container) return ["30","45","60","75","90"];
+        var checks = Array.from(container.querySelectorAll('input[type="checkbox"][value]:not([value="todos"])'));
+        var todos = container.querySelector('input[type="checkbox"][value="todos"]');
+        if (todos && todos.checked) return ["30","45","60","75","90"];
+        return checks.filter(function(chk){ return chk.checked; }).map(function(chk){ return chk.value; });
+      }
+
+      function atualizarResumoPeriodosExperiencia() {
+        var resumo = document.getElementById("fltExpPeriodosResumo");
+        if (!resumo) return;
+        var selecionados = obterPeriodosExperienciaSelecionados();
+        if (selecionados.length === 5) resumo.innerText = "Todos os períodos";
+        else if (!selecionados.length) resumo.innerText = "Nenhum período";
+        else resumo.innerText = selecionados.map(function(p){ return p + " dias"; }).join(" + ");
+      }
+
+      function alterarSelecaoPeriodosExperiencia(input) {
+        var container = document.getElementById("fltExpPeriodos");
+        if (!container) return;
+        var todos = container.querySelector('input[type="checkbox"][value="todos"]');
+        var checks = Array.from(container.querySelectorAll('input[type="checkbox"][value]:not([value="todos"])'));
+        if (input.value === "todos") {
+          checks.forEach(function(chk){ chk.checked = input.checked; });
+        } else {
+          var algum = checks.some(function(chk){ return chk.checked; });
+          var todosMarcados = checks.every(function(chk){ return chk.checked; });
+          if (todos) todos.checked = todosMarcados;
+          if (!algum && todos) todos.checked = false;
+        }
+        atualizarResumoPeriodosExperiencia();
+        aplicarFiltrosExperiencia();
+      }
+
+      function aplicarFiltrosExperiencia() {
+        var sup = document.getElementById("fltExpSupervisor").value;
+        var loja = document.getElementById("fltExpLoja").value;
+        var mes = document.getElementById("fltExpMes").value;
+        var status = document.getElementById("fltExpStatus").value;
+        var ordem = document.getElementById("fltExpOrdem").value;
+        var periodos = obterPeriodosExperienciaSelecionados();
+
+        var filtrados = listaExperienciaGlobal.filter(function(item) {
+          var passSup = !sup || item.supervisor === sup;
+          var passLoja = !loja || item.loja === loja;
+          var dadosPeriodos = [
+            {periodo:"30", iso:item.venc30ISO, status:item.status30},
+            {periodo:"45", iso:item.venc45ISO, status:item.status45},
+            {periodo:"60", iso:item.venc60ISO, status:item.status60},
+            {periodo:"75", iso:item.venc75ISO, status:item.status75},
+            {periodo:"90", iso:item.venc90ISO, status:item.status90}
+          ];
+          var periodosValidos = dadosPeriodos.filter(function(p){ return periodos.indexOf(p.periodo) >= 0; });
+          var passPeriodo = periodosValidos.length > 0;
+          var passStatus = !status || periodosValidos.some(function(p){ return p.status === status; });
+          var passMes = true;
+          if (mes) passMes = periodosValidos.some(function(p){ return p.iso && p.iso.substring(0,7) === mes; });
+          return passSup && passLoja && passPeriodo && passStatus && passMes;
+        });
+
+        filtrados.sort(function(a, b) {
+          if (ordem === "nome_asc") return a.nome.localeCompare(b.nome);
+          if (ordem === "nome_desc") return b.nome.localeCompare(a.nome);
+          if (ordem === "data_asc") return new Date(a.dataAdmissaoISO) - new Date(b.dataAdmissaoISO);
+          if (ordem === "data_desc") return new Date(b.dataAdmissaoISO) - new Date(a.dataAdmissaoISO);
+        });
+
+        atualizarResumoPeriodosExperiencia();
+        listaExperienciaGlobalFiltrada = filtrados;
+        paginaExperienciaAtual = 1;
+        renderizarTabelaExperiencia(filtrados);
+        renderizarCalendario(filtrados);
+      }
+
+      function classeStatus(status) {
+        if (status === "Feito") return "status-feito";
+        if (status === "Vencido") return "status-vencido";
+        return "status-avencer";
+      }
+
+      function criarSeletorStatus(linhaPlanilha, tipo, statusAtual) {
+        var classe = classeStatus(statusAtual);
+        return '<select class="status-select '+classe+'" data-status-linha="'+linhaPlanilha+'" data-status-tipo="'+tipo+'" onchange="alterarStatusPorSeletor(this)">' +
+          '<option value="A Vencer" '+(statusAtual === "A Vencer" ? "selected" : "")+'>A Vencer</option>' +
+          '<option value="Vencido" '+(statusAtual === "Vencido" ? "selected" : "")+'>Vencido</option>' +
+          '<option value="Feito" '+(statusAtual === "Feito" ? "selected" : "")+'>Feito</option>' +
+        '</select>';
+      }
+
+      function renderizarTabelaExperiencia(lista) {
+        var corpo = document.getElementById("corpoExperiencia");
+        var total = lista.length;
+        var totalPaginas = Math.max(1, Math.ceil(total / tamanhoPaginaExperiencia));
+        if (paginaExperienciaAtual > totalPaginas) paginaExperienciaAtual = totalPaginas;
+        if (paginaExperienciaAtual < 1) paginaExperienciaAtual = 1;
+
+        var inicio = (paginaExperienciaAtual - 1) * tamanhoPaginaExperiencia;
+        var fim = Math.min(inicio + tamanhoPaginaExperiencia, total);
+        var pagina = lista.slice(inicio, fim);
+        var html = "";
+
+        pagina.forEach(function(item, index) {
+          html += '<tr>' +
+            '<td class="row-number">'+(inicio + index + 1)+'</td>' +
+            '<td class="fw-bold text-primary">'+esc(item.nome)+'</td>' +
+            '<td>'+esc(item.cargo)+'</td>' +
+            '<td>'+esc(item.gerencia)+'</td>' +
+            '<td>'+esc(item.loja)+'</td>' +
+            '<td>'+esc(item.supervisor)+'</td>' +
+            '<td>'+esc(item.dataAdmissao)+'</td>' +
+            '<td class="period-col">'+esc(item.venc15)+'</td>' +
+            '<td class="status-col">'+criarSeletorStatus(item.linhaPlanilha,"15",item.status15)+'</td>' +
+            '<td class="period-col">'+esc(item.venc30)+'</td>' +
+            '<td class="status-col">'+criarSeletorStatus(item.linhaPlanilha,"30",item.status30)+'</td>' +
+            '<td class="period-col">'+esc(item.venc45)+'</td>' +
+            '<td class="status-col">'+criarSeletorStatus(item.linhaPlanilha,"45",item.status45)+'</td>' +
+            '<td class="period-col">'+esc(item.venc60)+'</td>' +
+            '<td class="status-col">'+criarSeletorStatus(item.linhaPlanilha,"60",item.status60)+'</td>' +
+            '<td class="period-col">'+esc(item.venc75)+'</td>' +
+            '<td class="status-col">'+criarSeletorStatus(item.linhaPlanilha,"75",item.status75)+'</td>' +
+            '<td class="period-col">'+esc(item.venc90)+'</td>' +
+            '<td class="status-col">'+criarSeletorStatus(item.linhaPlanilha,"90",item.status90)+'</td>' +
+          '</tr>';
+        });
+
+        if (!html) html = '<tr><td colspan="11" class="text-center py-3 text-muted">Nenhum colaborador encontrado com os filtros atuais.</td></tr>';
+        corpo.innerHTML = html;
+        document.getElementById("totalExperiencia").innerText = total + (total === 1 ? " avaliação" : " avaliações");
+        renderizarPaginacaoExperiencia(total);
+      }
+
+      function renderizarPaginacaoExperiencia(total) {
+        var container = document.getElementById("paginacaoExperiencia");
+        var totalPaginas = Math.max(1, Math.ceil(total / tamanhoPaginaExperiencia));
+        var html = '';
+
+        html += '<button class="page-btn" onclick="irParaPaginaExperiencia('+ (paginaExperienciaAtual - 1) +')" '+(paginaExperienciaAtual <= 1 ? 'disabled' : '')+'>Anterior</button>';
+
+        var inicio = Math.max(1, paginaExperienciaAtual - 2);
+        var fim = Math.min(totalPaginas, inicio + 4);
+        if (fim - inicio < 4) inicio = Math.max(1, fim - 4);
+
+        for (var p = inicio; p <= fim; p++) {
+          html += '<button class="page-btn '+(p === paginaExperienciaAtual ? 'active' : '')+'" onclick="irParaPaginaExperiencia('+p+')">'+p+'</button>';
+        }
+
+        html += '<button class="page-btn" onclick="irParaPaginaExperiencia('+ (paginaExperienciaAtual + 1) +')" '+(paginaExperienciaAtual >= totalPaginas ? 'disabled' : '')+'>Próxima</button>';
+        container.innerHTML = html;
+      }
+
+      function irParaPaginaExperiencia(pagina) {
+        var totalPaginas = Math.max(1, Math.ceil(listaExperienciaGlobalFiltrada.length / tamanhoPaginaExperiencia));
+        paginaExperienciaAtual = Math.max(1, Math.min(pagina, totalPaginas));
+        renderizarTabelaExperiencia(listaExperienciaGlobalFiltrada);
+      }
+
+      function alterarTamanhoPaginaExperiencia() {
+        tamanhoPaginaExperiencia = parseInt(document.getElementById("tamanhoPaginaExperiencia").value, 10) || 10;
+        paginaExperienciaAtual = 1;
+        renderizarTabelaExperiencia(listaExperienciaGlobalFiltrada);
+      }
+
+      function alterarStatusPorSeletor(select) {
+        var linhaPlanilha = parseInt(select.getAttribute("data-status-linha"), 10);
+        var tipo = select.getAttribute("data-status-tipo");
+        var novoStatus = select.value;
+        if (!linhaPlanilha || ["15","30","45","60","75","90"].indexOf(tipo) < 0) return;
+
+        select.disabled = true;
+        select.classList.add("status-saving");
+
+        var item = listaExperienciaGlobal.find(function(elem) { return elem.linhaPlanilha === linhaPlanilha; });
+        var anterior = item ? item["status" + tipo] : "";
+
+        if (item) {
+          item["status" + tipo] = novoStatus;
+          item["avaliacao" + tipo + "Concluida"] = novoStatus === "Feito";
+        }
+        aplicarFiltrosExperiencia();
+
+        google.script.run
+          .withSuccessHandler(function(res) {
+            if (!res || !res.sucesso) {
+              if (item) {
+                item["status" + tipo] = anterior;
+                item["avaliacao" + tipo + "Concluida"] = anterior === "Feito";
+              }
+              aplicarFiltrosExperiencia();
+              alert((res && res.mensagem) || "Não foi possível atualizar o status.");
+              return;
+            }
+            carregarAvaliacoes();
+          })
+          .withFailureHandler(function(err) {
+            if (item) {
+              item["status" + tipo] = anterior;
+              item["avaliacao" + tipo + "Concluida"] = anterior === "Feito";
+            }
+            aplicarFiltrosExperiencia();
+            alert("Erro ao atualizar o status: " + err);
+          })
+          .alternarStatusAvaliacao(linhaPlanilha, tipo, novoStatus);
+      }
+
+      var calendarioMesOffset = 0;
+
+      function getBaseMesCalendario() {
+        var hoje = new Date();
+        return new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+      }
+
+      function mudarMesCalendario(delta) {
+        var novoOffset = calendarioMesOffset + delta;
+        if (novoOffset < -3 || novoOffset > 3) return;
+        calendarioMesOffset = novoOffset;
+        renderizarCalendario(listaExperienciaGlobalFiltrada);
+      }
+
+      function irParaHojeCalendario() {
+        calendarioMesOffset = 0;
+        renderizarCalendario(listaExperienciaGlobalFiltrada);
+      }
+
+      var listaExperienciaGlobalFiltrada = [];
+
+      function renderizarCalendario(lista) {
+        listaExperienciaGlobalFiltrada = lista || [];
+        var container = document.getElementById("gradeCalendario");
+        container.innerHTML = "";
+
+        var base = getBaseMesCalendario();
+        var mesAtual = new Date(base.getFullYear(), base.getMonth() + calendarioMesOffset, 1);
+        var titulo = mesAtual.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+        document.getElementById('tituloMesCalendario').innerText = titulo;
+        document.getElementById('btnMesAnterior').disabled = calendarioMesOffset <= -3;
+        document.getElementById('btnProximoMes').disabled = calendarioMesOffset >= 3;
+
+        var inicio = new Date(mesAtual);
+        inicio.setDate(1 - inicio.getDay());
+
+        var hoje = new Date();
+        hoje.setHours(0,0,0,0);
+        var hojeISO = hoje.getFullYear() + '-' + String(hoje.getMonth()+1).padStart(2,'0') + '-' + String(hoje.getDate()).padStart(2,'0');
+
+        for (var i = 0; i < 42; i++) {
+          var diaAtual = new Date(inicio);
+          diaAtual.setDate(inicio.getDate() + i);
+
+          var ano = diaAtual.getFullYear();
+          var mes = String(diaAtual.getMonth() + 1).padStart(2, '0');
+          var dia = String(diaAtual.getDate()).padStart(2, '0');
+          var isoDia = ano + '-' + mes + '-' + dia;
+
+          var celula = document.createElement("div");
+          celula.className = "calendar-day" +
+            (diaAtual.getMonth() !== mesAtual.getMonth() ? " other-month" : "") +
+            (isoDia === hojeISO ? " today" : "");
+
+          celula.innerHTML =
+            '<div class="day-head">' +
+              '<div class="day-num">' + diaAtual.getDate() + '</div>' +
+              '<div class="day-subtotal" style="display:none"></div>' +
+            '</div>' +
+            '<div class="calendar-day-events"></div>';
+
+          var eventos = celula.querySelector('.calendar-day-events');
+          var subtotal = 0;
+
+          listaExperienciaGlobalFiltrada.forEach(function(item) {
+            var exibeLoja = item.loja ? item.loja : "Sem Loja";
+            var exibeAdm = item.dataAdmissao ? item.dataAdmissao : "Sem Data";
+            var periodosSelecionados = obterPeriodosExperienciaSelecionados();
+            [
+              {periodo:"30", iso:item.venc30ISO, status:item.status30},
+              {periodo:"45", iso:item.venc45ISO, status:item.status45},
+              {periodo:"60", iso:item.venc60ISO, status:item.status60},
+              {periodo:"75", iso:item.venc75ISO, status:item.status75},
+              {periodo:"90", iso:item.venc90ISO, status:item.status90}
+            ].forEach(function(ev) {
+              if (periodosSelecionados.indexOf(ev.periodo) < 0 || ev.iso !== isoDia) return;
+              subtotal++;
+              var classe = ev.status === "Feito" ? "event-feito" :
+                ev.status === "Vencido" ? "event-vencido" : "event-avencer";
+              eventos.innerHTML +=
+                '<div class="badge-event '+classe+'" title="'+ev.periodo+' dias - '+esc(ev.status)+' - Nome: '+esc(item.nome)+' | Loja: '+esc(exibeLoja)+' | Adm: '+esc(exibeAdm)+'">' +
+                  '<span class="event-title">'+ev.periodo+'d: '+esc(item.nome)+'</span>' +
+                  '<span class="event-sub">'+esc(ev.status)+' | '+esc(exibeLoja)+' | Adm: '+esc(exibeAdm)+'</span>' +
+                '</div>';
+            });
+          });
+
+          if (subtotal > 0) {
+            var subtotalEl = celula.querySelector('.day-subtotal');
+            subtotalEl.innerText = 'Subtotal: ' + subtotal;
+            subtotalEl.style.display = 'inline-flex';
+          }
+
+          container.appendChild(celula);
+        }
+      }
+
+      // 5. CARGA EM MASSA
+      function processarPlanilha() {
+        var input = document.getElementById('arquivoPlanilha');
+        var btn = document.getElementById('btnImportarMassa');
+        var msgDiv = document.getElementById('msgMassa');
+
+        if (!input.files.length) {
+          alert("Selecione um arquivo Excel ou CSV!");
+          return;
+        }
+
+        btn.disabled = true;
+        btn.innerText = "Lendo arquivo...";
+
+        var file = input.files[0];
+        var reader = new FileReader();
+
+        reader.onload = function(e) {
+          try {
+            var data = new Uint8Array(e.target.result);
+            var workbook = XLSX.read(data, {type: 'array'});
+            var primeiraAba = workbook.SheetNames[0];
+            var dadosJSON = XLSX.utils.sheet_to_json(workbook.Sheets[primeiraAba]);
+
+            if (dadosJSON.length === 0) throw new Error("Arquivo sem dados.");
+
+            btn.innerText = "Importando " + dadosJSON.length + " linhas...";
+
+            google.script.run
+              .withSuccessHandler(function(resposta) {
+                msgDiv.className = "alert mt-3 alert-success";
+                msgDiv.innerText = resposta.mensagem;
+                input.value = "";
+                btn.disabled = false;
+                btn.innerText = "Carregar e Importar Dados";
+              })
+              .salvarEmMassa(dadosJSON);
+
+          } catch (err) {
+            msgDiv.className = "alert mt-3 alert-danger";
+            msgDiv.innerText = "Erro ao ler arquivo: " + err.message;
+            btn.disabled = false;
+            btn.innerText = "Carregar e Importar Dados";
+          }
+        };
+
+        reader.readAsArrayBuffer(file);
+      }
+
+
+      function baixarArquivoTexto(nomeArquivo, conteudo) {
+        var blob = new Blob(["\uFEFF" + conteudo], { type: "text/csv;charset=utf-8;" });
+        var url = URL.createObjectURL(blob);
+        var link = document.createElement("a");
+        link.href = url;
+        link.download = nomeArquivo;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
+      }
+
+      function baixarModeloAdmissao() {
+        google.script.run
+          .withSuccessHandler(function(csv) {
+            baixarArquivoTexto("modelo_admissao.csv", csv);
+          })
+          .withFailureHandler(function(err) {
+            alert("Erro ao gerar modelo de admissão: " + err);
+          })
+          .gerarModeloAdmissaoCSV();
+      }
+
+      function baixarArquivoBase64(nomeArquivo, base64, tipoMime) {
+        var binario = atob(base64);
+        var bytes = new Uint8Array(binario.length);
+        for (var i = 0; i < binario.length; i++) {
+          bytes[i] = binario.charCodeAt(i);
+        }
+
+        var blob = new Blob([bytes], { type: tipoMime || "application/octet-stream" });
+        var url = URL.createObjectURL(blob);
+        var link = document.createElement("a");
+        link.href = url;
+        link.download = nomeArquivo;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
+      }
+
+      function baixarModeloDemissao() {
+        google.script.run
+          .withSuccessHandler(function(base64) {
+            baixarArquivoBase64(
+              "modelo_demissao.xlsx",
+              base64,
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            );
+          })
+          .withFailureHandler(function(err) {
+            alert("Erro ao gerar modelo de demissão: " + err);
+          })
+          .gerarModeloDemissaoXLSX();
+      }
+
+      function lerArquivoParaJSON(input, callback) {
+        if (!input.files.length) {
+          throw new Error("Selecione um arquivo.");
+        }
+
+        var file = input.files[0];
+        var reader = new FileReader();
+
+        reader.onload = function(e) {
+          try {
+            var data = new Uint8Array(e.target.result);
+            var workbook = XLSX.read(data, { type: "array", cellDates: true });
+            var primeiraAba = workbook.SheetNames[0];
+            var dadosJSON = XLSX.utils.sheet_to_json(workbook.Sheets[primeiraAba], { defval: "" });
+
+            if (!dadosJSON.length) throw new Error("Arquivo sem dados.");
+            callback(dadosJSON);
+          } catch (err) {
+            callback(null, err);
+          }
+        };
+
+        reader.readAsArrayBuffer(file);
+      }
+
+      function baixarModeloMovimentacoes() {
+        google.script.run.withSuccessHandler(function(res) {
+          if (!res || !res.sucesso) { alert((res && res.mensagem) || "Erro ao gerar modelo de movimentações."); return; }
+          baixarArquivoBase64(res.nomeArquivo, res.base64, res.mimeType);
+        }).withFailureHandler(function(err) { alert("Erro ao gerar modelo de movimentações: " + err); }).gerarModeloMovimentacoesXLSX();
+      }
+
+      function processarMovimentacoes() {
+        var input=document.getElementById("arquivoMovimentacoes"), btn=document.getElementById("btnImportarMovimentacoes"), msg=document.getElementById("msgMassa");
+        if(!input.files.length){alert("Selecione o modelo de movimentações preenchido.");return;}
+        btn.disabled=true; btn.innerHTML='<span class="spinner-border spinner-border-sm me-1"></span> Processando...';
+        lerArquivoParaJSON(input,function(dados,erro){
+          if(erro){msg.className="alert mt-3 alert-danger";msg.innerText="Erro ao ler arquivo: "+erro.message;btn.disabled=false;btn.innerHTML='<i class="bi bi-cloud-arrow-up-fill me-1"></i> Carregar movimentações';return;}
+          google.script.run.withSuccessHandler(function(res){msg.className="alert mt-3 "+(res.sucesso?"alert-success":"alert-danger");msg.innerText=res.mensagem;if(res.sucesso)input.value="";btn.disabled=false;btn.innerHTML='<i class="bi bi-cloud-arrow-up-fill me-1"></i> Carregar movimentações';carregarQuadroAtivo();}).withFailureHandler(function(err){msg.className="alert mt-3 alert-danger";msg.innerText="Erro ao processar movimentações: "+err;btn.disabled=false;btn.innerHTML='<i class="bi bi-cloud-arrow-up-fill me-1"></i> Carregar movimentações';}).processarMovimentacoesEmMassa(dados);
+        });
+      }
+
+      function abrirHistoricoFuncionario(cpf) {
+        var corpo=document.getElementById("corpoHistorico");
+        corpo.innerHTML='<div class="text-center text-muted py-4"><div class="spinner-border spinner-border-sm me-2"></div>Carregando histórico...</div>';
+        modalHistoricoInstance.show();
+        var item=listaColaboradoresGlobal.find(function(c){return String(c.cpf||"").replace(/\D/g,"")===String(cpf||"").replace(/\D/g,"");});
+        google.script.run.withSuccessHandler(function(res){
+          if(!res||!res.sucesso){corpo.innerHTML='<div class="history-empty text-danger">'+esc((res&&res.mensagem)||"Não foi possível carregar o histórico.")+'</div>';return;}
+          var lista=res.dados||[], nome=item?item.nome:(lista.length?lista[0].nome:"Colaborador");
+          var cargo=item?item.cargo:(lista.length?lista[0].cargoNovo:"");
+          var loja=item?item.unidadeNegocio:(lista.length?lista[0].lojaNova:"");
+          var sup=item?item.lideres:(lista.length?lista[0].supervisorNovo:"");
+          var adm=item?item.dataContratacao:"";
+          var resumo='<div class="history-summary">'+
+            '<div class="history-summary-card"><div class="history-summary-label">Colaborador</div><div class="history-summary-value">'+esc(nome)+'</div></div>'+
+            '<div class="history-summary-card"><div class="history-summary-label">Cargo atual</div><div class="history-summary-value">'+esc(cargo)+'</div></div>'+
+            '<div class="history-summary-card"><div class="history-summary-label">Loja / Unidade</div><div class="history-summary-value">'+esc(loja)+'</div></div>'+
+            '<div class="history-summary-card"><div class="history-summary-label">Supervisor</div><div class="history-summary-value">'+esc(sup)+'</div></div>'+
+            '</div><div class="subtext mb-3">Admissão: '+esc(adm)+' &nbsp;•&nbsp; '+lista.length+' movimentação(ões) registrada(s)</div>';
+          if(!lista.length){corpo.innerHTML=resumo+'<div class="history-empty">Nenhuma movimentação histórica registrada para este colaborador.</div>';return;}
+          var html='<div class="history-timeline">';
+          lista.forEach(function(m){
+            var alter=[]; if(m.cargoAnterior!==m.cargoNovo)alter.push('<b>Cargo:</b> '+esc(m.cargoAnterior||"—")+' → '+esc(m.cargoNovo||"—")); if(m.lojaAnterior!==m.lojaNova)alter.push('<b>Loja/Unidade:</b> '+esc(m.lojaAnterior||"—")+' → '+esc(m.lojaNova||"—")); if(m.supervisorAnterior!==m.supervisorNovo)alter.push('<b>Supervisor:</b> '+esc(m.supervisorAnterior||"—")+' → '+esc(m.supervisorNovo||"—"));
+            html+='<div class="history-item"><div class="history-date">'+esc(m.dataMovimentacao)+'</div><div class="history-type">'+esc(m.tipoMovimentacao)+'</div><div class="history-change">'+(alter.join('<br>')||'Registro da movimentação.')+'</div>'+(m.observacao?'<div class="history-change"><b>Obs.:</b> '+esc(m.observacao)+'</div>':'')+'<div class="history-meta">Registrado em '+esc(m.dataRegistro)+' • '+esc(m.origem)+'</div></div>';
+          });
+          html+='</div>'; corpo.innerHTML=resumo+html;
+        }).withFailureHandler(function(err){corpo.innerHTML='<div class="history-empty text-danger">Erro ao carregar histórico: '+esc(err)+'</div>';}).buscarHistoricoFuncionario(cpf);
+      }
+
+      function processarAdmissoes() {
+        var input = document.getElementById("arquivoAdmissoes");
+        var btn = document.getElementById("btnImportarAdmissoes");
+        var msg = document.getElementById("msgMassa");
+
+        if (!input.files.length) {
+          alert("Selecione o modelo de admissão preenchido.");
+          return;
+        }
+
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Processando...';
+
+        lerArquivoParaJSON(input, function(dados, erro) {
+          if (erro) {
+            msg.className = "alert mt-3 alert-danger";
+            msg.innerText = "Erro ao ler arquivo: " + erro.message;
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-cloud-arrow-up-fill me-1"></i> Carregar admissões';
+            return;
+          }
+
+          google.script.run
+            .withSuccessHandler(function(res) {
+              msg.className = "alert mt-3 " + (res.sucesso ? "alert-success" : "alert-danger");
+              msg.innerText = res.mensagem;
+              if (res.sucesso) input.value = "";
+              btn.disabled = false;
+              btn.innerHTML = '<i class="bi bi-cloud-arrow-up-fill me-1"></i> Carregar admissões';
+            })
+            .withFailureHandler(function(err) {
+              msg.className = "alert mt-3 alert-danger";
+              msg.innerText = "Erro ao importar admissões: " + err;
+              btn.disabled = false;
+              btn.innerHTML = '<i class="bi bi-cloud-arrow-up-fill me-1"></i> Carregar admissões';
+            })
+            .salvarEmMassa(dados);
+        });
+      }
+
+
+      // 6. ANIVERSARIANTES DO DIA
+      function carregarAniversariantesHoje() {
+        var pessoa = document.getElementById("corpoAniversariosPessoa");
+        var empresa = document.getElementById("corpoAniversariosEmpresa");
+        var msg = document.getElementById("msgAniversariantes");
+
+        if (pessoa) pessoa.innerHTML = '<div class="birthday-empty"><div class="spinner-border spinner-border-sm me-2"></div>Buscando aniversariantes...</div>';
+        if (empresa) empresa.innerHTML = '<div class="birthday-empty"><div class="spinner-border spinner-border-sm me-2"></div>Buscando aniversariantes...</div>';
+
+        google.script.run
+          .withSuccessHandler(function(res) {
+            if (!res || !res.sucesso) {
+              if (pessoa) pessoa.innerHTML = '<div class="birthday-empty text-danger">' + esc((res && res.mensagem) || "Não foi possível carregar os aniversariantes.") + '</div>';
+              if (empresa) empresa.innerHTML = '<div class="birthday-empty text-danger">' + esc((res && res.mensagem) || "Não foi possível carregar os aniversariantes.") + '</div>';
+              return;
+            }
+
+            var dataTexto = res.dataReferencia || "";
+            var elData = document.getElementById("dataAniversariantesHoje");
+            if (elData) elData.innerText = dataTexto ? "Referência: " + dataTexto : "Hoje";
+
+            renderizarAniversariosPessoa(res.aniversarios || []);
+            renderizarAniversariosEmpresa(res.aniversariosEmpresa || []);
+
+            if (msg) {
+              msg.className = "alert mt-3 d-none";
+              msg.innerText = "";
+            }
+          })
+          .withFailureHandler(function(err) {
+            if (pessoa) pessoa.innerHTML = '<div class="birthday-empty text-danger">Erro ao carregar aniversariantes.</div>';
+            if (empresa) empresa.innerHTML = '<div class="birthday-empty text-danger">Erro ao carregar aniversariantes.</div>';
+            if (msg) {
+              msg.className = "alert mt-3 alert-danger";
+              msg.innerText = "Erro ao carregar aniversariantes: " + err;
+            }
+          })
+          .buscarAniversariantesHoje();
+      }
+
+      function idSeguroAniversario(prefix, index) {
+        return prefix + '_' + index;
+      }
+
+      function alternarEditorMensagem(prefix, index) {
+        var row = document.getElementById(idSeguroAniversario(prefix + '_composer', index));
+        if (!row) return;
+        row.classList.toggle('d-none');
+        if (!row.classList.contains('d-none')) {
+          var campo = row.querySelector('.birthday-message-input');
+          if (campo) setTimeout(function(){ campo.focus(); }, 50);
+        }
+      }
+
+      function alternarEmojiPicker(prefix, index) {
+        var picker = document.getElementById(idSeguroAniversario(prefix + '_emoji', index));
+        if (!picker) return;
+        picker.classList.toggle('open');
+      }
+
+      function inserirEmojiNoCampo(evento, textareaId) {
+        var emoji = evento && evento.detail && evento.detail.unicode ? evento.detail.unicode : '';
+        if (!emoji) return;
+        var campo = document.getElementById(textareaId);
+        if (!campo) return;
+        var inicio = typeof campo.selectionStart === 'number' ? campo.selectionStart : campo.value.length;
+        var fim = typeof campo.selectionEnd === 'number' ? campo.selectionEnd : campo.value.length;
+        campo.value = campo.value.slice(0, inicio) + emoji + campo.value.slice(fim);
+        var novaPosicao = inicio + emoji.length;
+        campo.focus();
+        campo.setSelectionRange(novaPosicao, novaPosicao);
+      }
+
+      function configurarEmojiPicker(textareaId, pickerId) {
+        var picker = document.getElementById(pickerId);
+        if (!picker || picker.dataset.configurado === '1') return;
+        picker.addEventListener('emoji-click', function(evento) {
+          inserirEmojiNoCampo(evento, textareaId);
+        });
+        picker.dataset.configurado = '1';
+      }
+
+      function abrirWhatsAppComMensagem(numero, mensagem) {
+        var digits = String(numero == null ? '' : numero).replace(/\D/g, '');
+        if (!digits) return;
+        if (digits.indexOf('55') !== 0 && (digits.length === 10 || digits.length === 11)) digits = '55' + digits;
+        var texto = String(mensagem == null ? '' : mensagem);
+        if (!texto.trim()) { alert('Digite a mensagem antes de enviar.'); return; }
+        window.open('https://wa.me/' + digits + '?text=' + encodeURIComponent(texto), '_blank');
+      }
+
+      function abrirEmailComMensagem(email, nome, mensagem) {
+        var endereco = String(email == null ? '' : email).trim();
+        if (!endereco) return;
+        var texto = String(mensagem == null ? '' : mensagem);
+        if (!texto.trim()) { alert('Digite a mensagem antes de enviar.'); return; }
+        var assunto = 'Feliz aniversário!';
+        window.location.href = 'mailto:' + endereco + '?subject=' + encodeURIComponent(assunto) + '&body=' + encodeURIComponent(texto);
+      }
+
+      function enviarMensagemAniversariante(prefix, index, canal, contato, nome) {
+        var textareaId = idSeguroAniversario(prefix + '_msg', index);
+        var campo = document.getElementById(textareaId);
+        var mensagem = campo ? campo.value : '';
+        if (!mensagem.trim()) {
+          alert('Digite uma mensagem personalizada antes de enviar.');
+          if (campo) campo.focus();
+          return;
+        }
+        if (canal === 'whatsapp') abrirWhatsAppComMensagem(contato, mensagem);
+        if (canal === 'email') abrirEmailComMensagem(contato, nome, mensagem);
+      }
+
+      function renderizarEditorMensagem(prefix, index, item, colspan) {
+        var msgId = idSeguroAniversario(prefix + '_msg', index);
+        var composerId = idSeguroAniversario(prefix + '_composer', index);
+        var pickerId = idSeguroAniversario(prefix + '_emoji', index);
+        var nome = escAttr(item.nome);
+        var celular = String(item.celular || '').trim();
+        var email = String(item.email || '').trim();
+        return '<div id="' + composerId + '" class="birthday-composer-row d-none">' +
+          '<div class="birthday-composer">' +
+            '<div class="birthday-composer-title"><i class="bi bi-chat-text me-1"></i>Mensagem personalizada para ' + esc(item.nome) + '</div>' +
+            '<div class="birthday-message-wrap">' +
+              '<textarea id="' + msgId + '" class="birthday-message-input" placeholder="Digite aqui a mensagem de aniversário..."></textarea>' +
+              '<button type="button" class="birthday-emoji-btn" onclick="alternarEmojiPicker(\'' + prefix + '\',' + index + '); configurarEmojiPicker(\'' + msgId + '\',\'' + pickerId + '\')" title="Inserir emoji">😀</button>' +
+            '</div>' +
+            '<emoji-picker id="' + pickerId + '" class="birthday-emoji-picker"></emoji-picker>' +
+            '<div class="birthday-send-row">' +
+              '<button type="button" class="birthday-send-btn whatsapp" ' + (!celular ? 'disabled' : '') + ' onclick="enviarMensagemAniversariante(\'' + prefix + '\',' + index + ',\'whatsapp\',\'' + escAttr(celular) + '\',\'' + nome + '\')" title="Enviar pelo WhatsApp"><i class="bi bi-whatsapp"></i> WhatsApp</button>' +
+              '<button type="button" class="birthday-send-btn email" ' + (!email ? 'disabled' : '') + ' onclick="enviarMensagemAniversariante(\'' + prefix + '\',' + index + ',\'email\',\'' + escAttr(email) + '\',\'' + nome + '\')" title="Enviar por e-mail"><i class="bi bi-envelope-fill"></i> E-mail</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      }
+
+      function renderizarAniversariosPessoa(lista) {
+        var corpo = document.getElementById('corpoAniversariosPessoa');
+        var total = document.getElementById('totalAniversariosPessoa');
+        if (total) total.innerText = lista.length + (lista.length === 1 ? ' pessoa' : ' pessoas');
+
+        if (!lista.length) {
+          corpo.innerHTML = '<div class="birthday-empty">Nenhum aniversariante hoje.</div>';
+          return;
+        }
+
+        var html = '';
+        lista.forEach(function(item, index) {
+          var prefix = 'pessoa';
+          html += '<div class="birthday-person-card">' +
+            '<div class="birthday-person-main">' +
+              '<div class="birthday-person-top">' +
+                '<div class="birthday-person-name-wrap">' +
+                  '<span class="birthday-person-number">' + (index + 1) + '</span>' +
+                  '<span class="birthday-highlight">' + esc(item.nome) + '</span>' +
+                '</div>' +
+                '<div class="birthday-message-actions">' +
+                  '<button type="button" class="btn-birthday-message" onclick="alternarEditorMensagem(\'' + prefix + '\',' + index + ')"><i class="bi bi-chat-dots me-1"></i>Mensagem</button>' +
+                '</div>' +
+              '</div>' +
+              '<div class="birthday-person-info">' +
+                '<div class="birthday-info-item"><span class="birthday-info-label">Cargo</span><span class="birthday-info-value">' + esc(item.cargo) + '</span></div>' +
+                '<div class="birthday-info-item"><span class="birthday-info-label">Loja / Unidade</span><span class="birthday-info-value">' + esc(item.loja) + '</span></div>' +
+                '<div class="birthday-info-item"><span class="birthday-info-label">Supervisor</span><span class="birthday-info-value">' + esc(item.supervisor) + '</span></div>' +
+                '<div class="birthday-info-item"><span class="birthday-info-label">Nascimento</span><span class="birthday-info-value">' + esc(item.dataNascimento) + '</span></div>' +
+              '</div>' +
+            '</div>' +
+            renderizarEditorMensagem(prefix, index, item, 1) +
+          '</div>';
+        });
+        corpo.innerHTML = html;
+      }
+
+      function renderizarAniversariosEmpresa(lista) {
+        var corpo = document.getElementById('corpoAniversariosEmpresa');
+        var total = document.getElementById('totalAniversariosEmpresa');
+        if (total) total.innerText = lista.length + (lista.length === 1 ? ' pessoa' : ' pessoas');
+
+        if (!lista.length) {
+          corpo.innerHTML = '<div class="birthday-empty">Nenhum aniversário de empresa hoje.</div>';
+          return;
+        }
+
+        var html = '';
+        lista.forEach(function(item, index) {
+          var prefix = 'empresa';
+          html += '<div class="birthday-person-card">' +
+            '<div class="birthday-person-main">' +
+              '<div class="birthday-person-top">' +
+                '<div class="birthday-person-name-wrap">' +
+                  '<span class="birthday-person-number">' + (index + 1) + '</span>' +
+                  '<span class="birthday-highlight">' + esc(item.nome) + '</span>' +
+                '</div>' +
+                '<div class="birthday-message-actions">' +
+                  '<button type="button" class="btn-birthday-message" onclick="alternarEditorMensagem(\'' + prefix + '\',' + index + ')"><i class="bi bi-chat-dots me-1"></i>Mensagem</button>' +
+                '</div>' +
+              '</div>' +
+              '<div class="birthday-person-info">' +
+                '<div class="birthday-info-item"><span class="birthday-info-label">Cargo</span><span class="birthday-info-value">' + esc(item.cargo) + '</span></div>' +
+                '<div class="birthday-info-item"><span class="birthday-info-label">Loja / Unidade</span><span class="birthday-info-value">' + esc(item.loja) + '</span></div>' +
+                '<div class="birthday-info-item"><span class="birthday-info-label">Supervisor</span><span class="birthday-info-value">' + esc(item.supervisor) + '</span></div>' +
+                '<div class="birthday-info-item"><span class="birthday-info-label">Contratação</span><span class="birthday-info-value">' + esc(item.dataContratacao) + '</span></div>' +
+                '<div class="birthday-info-item"><span class="birthday-info-label">Tempo de Empresa</span><span class="birthday-info-value">' + esc(item.tempoEmpresa) + '</span></div>' +
+              '</div>' +
+            '</div>' +
+            renderizarEditorMensagem(prefix, index, item, 1) +
+          '</div>';
+        });
+        corpo.innerHTML = html;
+      }
+
+      var listaDemitidosMesGlobal = [];
+      var mesesDemitidosSelecionados = [];
+
+      function nomeMesDemitido(n) {
+        return ["","Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"][Number(n)] || "";
+      }
+
+      function atualizarResumoMesesDemitidos() {
+        var checks=document.querySelectorAll('.filtro-demitido-mes:checked');
+        mesesDemitidosSelecionados=Array.prototype.map.call(checks,function(c){return Number(c.value);}).sort(function(a,b){return a-b;});
+        var btn=document.getElementById('btnFiltroDemitidosMes');
+        if(btn) btn.textContent=mesesDemitidosSelecionados.length?mesesDemitidosSelecionados.map(nomeMesDemitido).join(', '):'Selecionar meses';
+      }
+
+      function selecionarTodosMesesDemitidos(){document.querySelectorAll('.filtro-demitido-mes').forEach(function(c){c.checked=true;});atualizarResumoMesesDemitidos();carregarDemitidosMes();}
+      function limparMesesDemitidos(){document.querySelectorAll('.filtro-demitido-mes').forEach(function(c){c.checked=false;});atualizarResumoMesesDemitidos();carregarDemitidosMes();}
+
+      function inicializarFiltroDemitidosAno() {
+        var select = document.getElementById("filtroDemitidosAno");
+        if (!select || select.options.length) return;
+        var hoje = new Date(), anoAtual = hoje.getFullYear();
+        for (var ano = anoAtual - 5; ano <= anoAtual + 1; ano++) { var op=document.createElement("option"); op.value=String(ano); op.textContent=String(ano); if(ano===anoAtual)op.selected=true; select.appendChild(op); }
+      }
+
+      function inicializarMesDemitidosPadrao(){
+        if(!document.querySelector('.filtro-demitido-mes:checked')){var m=new Date().getMonth()+1, c=document.querySelector('.filtro-demitido-mes[value="'+m+'"]');if(c)c.checked=true;}
+        atualizarResumoMesesDemitidos();
+      }
+
+      function carregarDemitidosMes() {
+        inicializarFiltroDemitidosAno(); inicializarMesDemitidosPadrao();
+        var anoEl=document.getElementById("filtroDemitidosAno"), corpo=document.getElementById("corpoDemitidosMes"), total=document.getElementById("totalDemitidosMes"), msg=document.getElementById("msgDemitidos");
+        if(!anoEl||!corpo)return;
+        var ano=Number(anoEl.value)||new Date().getFullYear(), meses=mesesDemitidosSelecionados.slice();
+        corpo.innerHTML='<tr><td colspan="8" class="text-center text-muted py-4"><div class="spinner-border spinner-border-sm me-2"></div>Buscando desligamentos...</td></tr>'; if(total)total.textContent="0"; if(msg){msg.className="alert mt-3 d-none";msg.textContent="";}
+        if(!meses.length){corpo.innerHTML='<tr><td colspan="8" class="text-center text-muted py-4">Selecione pelo menos um mês.</td></tr>';return;}
+        var pend=meses.length, acumulado=[];
+        meses.forEach(function(mes){google.script.run.withSuccessHandler(function(res){if(res&&res.sucesso)acumulado=acumulado.concat(res.dados||[]);pend--;if(pend===0){listaDemitidosMesGlobal=acumulado;var chaves={};listaDemitidosMesGlobal=listaDemitidosMesGlobal.filter(function(x){var k=String(x.cpf||'')+'|'+String(x.dataDesligamentoISO||'');if(chaves[k])return false;chaves[k]=true;return true;});if(total)total.textContent=String(listaDemitidosMesGlobal.length);aplicarFiltrosDemitidos();}}).withFailureHandler(function(err){pend--;if(pend===0){listaDemitidosMesGlobal=acumulado;aplicarFiltrosDemitidos();if(msg){msg.className="alert mt-3 alert-danger";msg.textContent="Erro ao carregar um ou mais meses: "+err;}}}).buscarDemitidosDoMes(mes,ano);});
+      }
+
+      function aplicarFiltrosDemitidos() {
+        var corpo = document.getElementById("corpoDemitidosMes");
+        var campo = document.getElementById("buscaDemitidos");
+        if (!corpo) return;
+        var termo = String(campo && campo.value || "").trim().toLowerCase();
+        var lista = listaDemitidosMesGlobal.filter(function(item) {
+          if (!termo) return true;
+          var texto = [item.nome, item.cpf, item.dataDesligamento, item.motivoDesligamento, item.cargo, item.loja, item.supervisor].join(" ").toLowerCase();
+          return texto.indexOf(termo) >= 0;
+        });
+        if (!lista.length) {
+          corpo.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">Nenhum desligamento encontrado para os filtros selecionados.</td></tr>';
+          return;
+        }
+        var html = "";
+        lista.forEach(function(item, index) {
+          html += '<tr>' +
+            '<td>' + (index + 1) + '</td>' +
+            '<td class="demitidos-name">' + esc(item.nome) + '</td>' +
+            '<td>' + esc(item.cpf) + '</td>' +
+            '<td>' + esc(item.dataDesligamento) + '</td>' +
+            '<td class="demitidos-motivo">' + esc(item.motivoDesligamento) + '</td>' +
+            '<td>' + esc(item.cargo) + '</td>' +
+            '<td>' + esc(item.loja) + '</td>' +
+            '<td>' + esc(item.supervisor) + '</td>' +
+          '</tr>';
+        });
+        corpo.innerHTML = html;
+      }
+
+
+      function baixarModeloHistorico() {
+        google.script.run.withSuccessHandler(function(res) {
+          if (!res || !res.sucesso) { alert((res && res.mensagem) || "Erro ao gerar modelo de histórico."); return; }
+          baixarArquivoBase64(res.nomeArquivo, res.base64, res.mimeType);
+        }).withFailureHandler(function(err) { alert("Erro ao gerar modelo de histórico: " + err); }).gerarModeloHistoricoXLSX();
+      }
+
+      function processarHistorico() {
+        var input=document.getElementById("arquivoHistorico"), btn=document.getElementById("btnImportarHistorico"), msg=document.getElementById("msgMassa");
+        if(!input || !input.files.length){alert("Selecione pelo menos uma base histórica.");return;}
+        btn.disabled=true; btn.innerHTML='<span class="spinner-border spinner-border-sm me-1"></span> Lendo bases...';
+        var files=Array.prototype.slice.call(input.files), todos=[], restantes=files.length, erroLeitura=null;
+        files.forEach(function(file){
+          var reader=new FileReader();
+          reader.onload=function(e){
+            try{
+              var data=new Uint8Array(e.target.result), workbook=XLSX.read(data,{type:"array",cellDates:true}), nomeAba=workbook.SheetNames[0], rows=XLSX.utils.sheet_to_json(workbook.Sheets[nomeAba],{defval:""});
+              if(!rows.length) throw new Error("Arquivo "+file.name+" sem dados.");
+              todos=todos.concat(rows);
+            }catch(err){erroLeitura=err;}
+            restantes--;
+            if(restantes===0){
+              if(erroLeitura){msg.className="alert mt-3 alert-danger";msg.innerText="Erro ao ler histórico: "+erroLeitura.message;btn.disabled=false;btn.innerHTML='<i class="bi bi-search me-1"></i> Comparar bases históricas';return;}
+              btn.innerHTML='<span class="spinner-border spinner-border-sm me-1"></span> Comparando...';
+              google.script.run.withSuccessHandler(function(res){
+                btn.disabled=false; btn.innerHTML='<i class="bi bi-search me-1"></i> Comparar bases históricas';
+                if(!res || !res.sucesso){msg.className="alert mt-3 alert-danger";msg.innerText=(res&&res.mensagem)||"Não foi possível analisar as bases.";return;}
+                dadosAnaliseHistoricoPendente=res;
+                abrirPopupAnaliseHistorico(res);
+              }).withFailureHandler(function(err){msg.className="alert mt-3 alert-danger";msg.innerText="Erro ao comparar bases: "+err;btn.disabled=false;btn.innerHTML='<i class="bi bi-search me-1"></i> Comparar bases históricas';}).analisarHistoricoEmMassa(todos);
+            }
+          };
+          reader.readAsArrayBuffer(file);
+        });
+      }
+
+      function abrirPopupAnaliseHistorico(res) {
+        var corpo=document.getElementById("corpoHistoricoCarga"), rodape=document.getElementById("historicoCargaRodape"), btn=document.getElementById("btnConfirmarHistoricoCarga");
+        var bases=res.bases||[], mov=res.movimentos||[], desaparecidos=res.desaparecidos||[];
+        var html='<div class="history-base-summary">'+bases.map(function(b){return '<span class="history-base-pill">'+esc(b.mes)+' · '+b.total+' registros</span>';}).join('')+'</div>';
+        html+='<div class="history-warning mb-3"><i class="bi bi-exclamation-triangle-fill me-1"></i> A comparação identifica diferenças entre as bases. Nada será alterado até você confirmar abaixo.</div>';
+        html+='<div class="row g-2 mb-3"><div class="col-md-4"><div class="history-summary-card"><div class="history-summary-label">Bases</div><div class="history-summary-value">'+bases.length+'</div></div></div><div class="col-md-4"><div class="history-summary-card"><div class="history-summary-label">Movimentações encontradas</div><div class="history-summary-value">'+mov.length+'</div></div></div><div class="col-md-4"><div class="history-summary-card"><div class="history-summary-label">Não encontrados na base seguinte</div><div class="history-summary-value" style="color:#dc2626">'+desaparecidos.length+'</div></div></div></div>';
+        if(desaparecidos.length){
+          html+='<h6 class="fw-bold mb-2"><i class="bi bi-person-x-fill text-danger me-1"></i> Colaboradores presentes na base anterior e ausentes na seguinte</h6>';
+          html+='<div class="history-missing-table-wrap"><table class="table table-sm history-missing-table mb-0"><thead><tr><th style="width:36px">✓</th><th>Nome</th><th>CPF</th><th>Última base</th><th>Base seguinte</th><th>Data de desligamento (opcional)</th></tr></thead><tbody>';
+          desaparecidos.forEach(function(d,i){
+            html+='<tr><td><input type="checkbox" class="form-check-input hist-missing-check" data-index="'+i+'" '+(d.selecionado!==false?'checked':'')+'></td><td>'+esc(d.nome)+'</td><td>'+esc(d.cpf)+'</td><td>'+esc(d.ultimaBase)+'</td><td>'+esc(d.baseSeguinte)+'</td><td><input type="date" class="form-control form-control-sm history-date-input hist-missing-date" data-index="'+i+'" value=""></td></tr>';
+          });
+          html+='</tbody></table></div><div class="history-upload-help mt-2">Se a data não for informada, será registrada como <strong>Não informado</strong>. O motivo também ficará como <strong>Não informado</strong> e poderá ser editado depois.</div>';
+        } else {
+          html+='<div class="history-empty">Nenhum colaborador desapareceu entre as bases selecionadas.</div>';
+        }
+        if(mov.length){
+          html+='<details class="mt-3"><summary class="fw-bold" style="font-size:.72rem;cursor:pointer">Ver '+mov.length+' movimentação(ões) identificada(s)</summary><div class="table-responsive mt-2"><table class="table table-sm" style="font-size:.65rem"><thead><tr><th>Mês</th><th>Colaborador</th><th>Tipo</th><th>Alteração</th></tr></thead><tbody>';
+          mov.slice(0,500).forEach(function(m){var alt=[];if(m.cargoAnterior!==m.cargoNovo)alt.push('Cargo: '+(m.cargoAnterior||'—')+' → '+(m.cargoNovo||'—'));if(m.lojaAnterior!==m.lojaNova)alt.push('Loja: '+(m.lojaAnterior||'—')+' → '+(m.lojaNova||'—'));if(m.supervisorAnterior!==m.supervisorNovo)alt.push('Supervisor: '+(m.supervisorAnterior||'—')+' → '+(m.supervisorNovo||'—'));html+='<tr><td>'+esc(m.dataMovimentacaoISO)+'</td><td>'+esc(m.nome)+'</td><td>'+esc(m.tipoMovimentacao)+'</td><td>'+esc(alt.join(' | '))+'</td></tr>';});
+          html+='</tbody></table></div></details>';
+        }
+        corpo.innerHTML=html;
+        rodape.textContent=desaparecidos.length?'Selecione quem realmente deve ser considerado desligado.':'Apenas os eventos históricos identificados serão registrados.';
+        btn.disabled=false;
+        modalHistoricoCargaInstance.show();
+      }
+
+      function confirmarCargaHistorico() {
+        if(!dadosAnaliseHistoricoPendente) return;
+        var res=dadosAnaliseHistoricoPendente, desaparecidos=(res.desaparecidos||[]).map(function(d,i){
+          var ck=document.querySelector('.hist-missing-check[data-index="'+i+'"]'), dt=document.querySelector('.hist-missing-date[data-index="'+i+'"]');
+          return Object.assign({},d,{selecionado:!!(ck&&ck.checked),dataDesligamento:dt?dt.value:"",tipoDesligamento:"Não informado"});
+        });
+        var payload={movimentos:res.movimentos||[],desaparecidos:desaparecidos};
+        var btn=document.getElementById("btnConfirmarHistoricoCarga"), msg=document.getElementById("msgMassa");
+        btn.disabled=true;btn.innerHTML='<span class="spinner-border spinner-border-sm me-1"></span> Salvando...';
+        google.script.run.withSuccessHandler(function(resp){
+          btn.disabled=false;btn.innerHTML='Confirmar reconstrução';
+          if(resp&&resp.sucesso){modalHistoricoCargaInstance.hide();msg.className="alert mt-3 alert-success";msg.innerText=resp.mensagem;inputHistoricoLimpar();carregarQuadroAtivo();}
+          else{msg.className="alert mt-3 alert-danger";msg.innerText=(resp&&resp.mensagem)||"Não foi possível concluir a reconstrução.";}
+        }).withFailureHandler(function(err){btn.disabled=false;btn.innerHTML='Confirmar reconstrução';msg.className="alert mt-3 alert-danger";msg.innerText="Erro ao confirmar histórico: "+err;}).confirmarHistoricoEmMassa(payload);
+      }
+
+      function inputHistoricoLimpar(){var input=document.getElementById("arquivoHistorico");if(input)input.value="";dadosAnaliseHistoricoPendente=null;}
+
+      var dadosOrganograma = [];
+      var organogramaCarregado = false;
+      var zoomOrganograma = 100;
+
+      function normalizarOrg(v) {
+        return String(v == null ? "" : v).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, " ").trim();
+      }
+
+      function escOrg(v) {
+        return String(v == null ? "" : v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
+      }
+
+      function preencherFiltrosOrganograma() {
+        var geo=document.getElementById('orgGeo'), loja=document.getElementById('orgLoja');
+        if(!geo||!loja) return;
+        var atualGeo=geo.value, atualLoja=loja.value;
+        var geos={}, lojas={};
+        dadosOrganograma.forEach(function(x){ if(String(x.unidadeGeografica||'').trim()) geos[String(x.unidadeGeografica).trim()]=1; if(String(x.unidadeNegocio||'').trim()) lojas[String(x.unidadeNegocio).trim()]=1; });
+        geo.innerHTML='<option value="">Todas</option>'+Object.keys(geos).sort(function(a,b){return a.localeCompare(b,'pt-BR',{sensitivity:'base'});}).map(function(x){return '<option value="'+escOrg(x)+'">'+escOrg(x)+'</option>';}).join('');
+        loja.innerHTML='<option value="">Todas</option>'+Object.keys(lojas).sort(function(a,b){return a.localeCompare(b,'pt-BR',{sensitivity:'base'});}).map(function(x){return '<option value="'+escOrg(x)+'">'+escOrg(x)+'</option>';}).join('');
+        if(Object.keys(geos).indexOf(atualGeo)>=0) geo.value=atualGeo;
+        if(Object.keys(lojas).indexOf(atualLoja)>=0) loja.value=atualLoja;
+      }
+
+      function carregarOrganograma() {
+        var box=document.getElementById('orgTreeContainer');
+        if(box) box.innerHTML='<div class="org-empty"><span class="spinner-border spinner-border-sm me-2"></span>Carregando organograma...</div>';
+        google.script.run.withSuccessHandler(function(res){
+          if(!res || !res.sucesso){ if(box) box.innerHTML='<div class="org-empty text-danger">'+escOrg((res&&res.mensagem)||'Não foi possível carregar o organograma.')+'</div>'; return; }
+          dadosOrganograma=res.dados||[]; organogramaCarregado=true; preencherFiltrosOrganograma(); aplicarFiltrosOrganograma();
+        }).withFailureHandler(function(err){ if(box) box.innerHTML='<div class="org-empty text-danger">Erro ao carregar organograma: '+escOrg(err)+'</div>'; }).buscarOrganograma();
+      }
+
+      function aplicarFiltrosOrganograma() {
+        if(!organogramaCarregado) return;
+        var busca=normalizarOrg(document.getElementById('orgBusca')&&document.getElementById('orgBusca').value), geo=(document.getElementById('orgGeo')||{}).value||'', loja=(document.getElementById('orgLoja')||{}).value||'';
+        var filtrados=dadosOrganograma.filter(function(x){
+          var alvo=normalizarOrg([x.nome,x.cargo,x.unidadeNegocio,x.unidadeGeografica,x.lideres].join(' '));
+          return (!busca||alvo.indexOf(busca)>=0) && (!geo||String(x.unidadeGeografica||'')===geo) && (!loja||String(x.unidadeNegocio||'')===loja);
+        });
+        renderizarOrganograma(filtrados);
+      }
+
+      function construirArvoreOrganograma(lista) {
+        var porCpf={}, porNome={}, raizes=[];
+        lista.forEach(function(x){ porCpf[x.cpfChave||normalizarOrg(x.cpf)]=x; var n=normalizarOrg(x.nome); if(n){ if(!porNome[n]) porNome[n]=[]; porNome[n].push(x); } x.children=[]; x._nivel=0; });
+        lista.forEach(function(x){
+          var supCpf=normalizarOrg(x.superiorCpf), superior=supCpf?porCpf[supCpf]:null;
+          if(!superior){
+            var candidatos=[];
+            String(x.lideres||'').split(/\s*(?:\/|,|;|\||\s+e\s+)\s*/i).map(normalizarOrg).filter(Boolean).forEach(function(nome){ if(porNome[nome]&&porNome[nome].length===1) candidatos.push(porNome[nome][0]); });
+            superior=candidatos.length?candidatos[0]:null;
+          }
+          if(superior && superior!==x){ x._superior=superior; superior.children.push(x); x._nivel=(superior._nivel||0)+1; } else raizes.push(x);
+        });
+        return raizes;
+      }
+
+      function criarNoOrg(x) {
+        var li=document.createElement('li'), node=document.createElement('div'), temFilhos=x.children&&x.children.length;
+        node.className='org-node';
+        node.innerHTML='<div class="org-node-name">'+escOrg(x.nome||'Sem nome')+'</div><div class="org-node-role">'+escOrg(x.cargo||'Cargo não informado')+'</div><div class="org-node-meta">'+escOrg(x.unidadeNegocio||'Sem loja/unidade')+(x.unidadeGeografica?' · '+escOrg(x.unidadeGeografica):'')+(x.lideres?' · Líder: '+escOrg(x.lideres):'')+'</div>';
+        var btn=document.createElement('button'); btn.type='button'; btn.className='org-node-toggle'+(temFilhos?'':' no-children'); btn.title=temFilhos?'Expandir/recolher subordinados':''; btn.innerHTML=temFilhos?'<i class="bi bi-chevron-down"></i>':'';
+        if(temFilhos) btn.onclick=function(){ li.classList.toggle('org-collapsed'); btn.innerHTML=li.classList.contains('org-collapsed')?'<i class="bi bi-chevron-right"></i>':'<i class="bi bi-chevron-down"></i>'; };
+        node.appendChild(btn); li.appendChild(node);
+        if(temFilhos){ var ul=document.createElement('ul'); x.children.sort(function(a,b){return String(a.nome||'').localeCompare(String(b.nome||''),'pt-BR',{sensitivity:'base'});}).forEach(function(c){ul.appendChild(criarNoOrg(c));}); li.appendChild(ul); }
+        return li;
+      }
+
+      function renderizarOrganograma(lista) {
+        var cont=document.getElementById('orgTreeContainer'), resumo=document.getElementById('orgResumo'), aviso=document.getElementById('orgUnresolved');
+        if(!cont) return;
+        if(!lista.length){ cont.innerHTML='<div class="org-empty"><i class="bi bi-diagram-3 fs-2 d-block mb-2"></i>Nenhum colaborador encontrado para os filtros selecionados.</div>'; if(resumo) resumo.innerHTML=''; if(aviso){aviso.className='d-none';aviso.innerHTML='';} return; }
+        var raizes=construirArvoreOrganograma(lista), total=lista.length, gestores=lista.filter(function(x){return x.children&&x.children.length;}).length, semSuperior=raizes.length;
+        resumo.innerHTML='<span class="org-pill"><strong>'+total+'</strong> colaboradores</span><span class="org-pill"><strong>'+gestores+'</strong> líderes com subordinados</span><span class="org-pill"><strong>'+semSuperior+'</strong> no topo / sem líder identificado</span>';
+        cont.innerHTML=''; var stage=document.createElement('div'); stage.id='orgZoomStage'; stage.className='org-zoom-stage'; var tree=document.createElement('ul'); tree.className='org-tree'; raizes.sort(function(a,b){return String(a.nome||'').localeCompare(String(b.nome||''),'pt-BR',{sensitivity:'base'});}).forEach(function(r){tree.appendChild(criarNoOrg(r));}); stage.appendChild(tree); cont.appendChild(stage); atualizarZoomOrganograma();
+        var naoResolvidos=lista.filter(function(x){return String(x.lideres||'').trim()&&!x.superiorCpf;});
+        if(aviso){ if(naoResolvidos.length){ aviso.className='org-unresolved'; aviso.innerHTML='<strong>Atenção:</strong> '+naoResolvidos.length+' colaborador(es) possuem Líder/Supervisor informado, mas esse nome não pôde ser associado de forma única a outro colaborador da base. Eles permanecem no topo até a correção do cadastro.'; } else { aviso.className='d-none'; aviso.innerHTML=''; } }
+      }
+
+      function atualizarZoomOrganograma() {
+        var stage=document.getElementById('orgZoomStage');
+        var label=document.getElementById('orgZoomValue');
+        if(stage) stage.style.zoom=(zoomOrganograma/100);
+        if(label) label.textContent=Number(zoomOrganograma).toFixed(1)+'%';
+      }
+
+      function alterarZoomOrganograma(delta) {
+        zoomOrganograma=Math.max(50,Math.min(150,zoomOrganograma+Number(delta||0)));
+        atualizarZoomOrganograma();
+      }
+
+      function resetarZoomOrganograma() {
+        zoomOrganograma=100;
+        atualizarZoomOrganograma();
+      }
+
+      // Zoom por pinça no touchpad (normalmente recebido pelo navegador
+      // como wheel + ctrlKey) e por Ctrl + roda do mouse. O gesto é
+      // capturado somente dentro da área do organograma, sem alterar o zoom
+      // da página inteira.
+      function configurarZoomGestualOrganograma() {
+        var area=document.querySelector('#organograma .org-scroll');
+        if(!area || area.dataset.zoomGestualConfigurado==='1') return;
+        area.dataset.zoomGestualConfigurado='1';
+        var ultimoEvento=0;
+        area.addEventListener('wheel', function(ev){
+          if(!ev.ctrlKey) return;
+          ev.preventDefault();
+          ev.stopPropagation();
+
+          var agora=Date.now();
+          if(agora-ultimoEvento<8) return;
+          ultimoEvento=agora;
+
+          // Pinça para abrir costuma gerar deltaY negativo; pinça para
+          // fechar gera deltaY positivo. A intensidade acompanha o gesto,
+          // mas é limitada para evitar saltos excessivos.
+          var intensidade=Math.max(-12,Math.min(12,-Number(ev.deltaY||0)*0.08));
+          if(Math.abs(intensidade)<0.5) intensidade=intensidade<0?-0.5:0.5;
+
+          var rect=area.getBoundingClientRect();
+          var px=ev.clientX-rect.left+area.scrollLeft;
+          var py=ev.clientY-rect.top+area.scrollTop;
+          var fatorAntes=zoomOrganograma/100;
+          alterarZoomOrganograma(intensidade);
+          var fatorDepois=zoomOrganograma/100;
+
+          // Mantém aproximadamente o ponto onde a pinça ocorreu sob o
+          // cursor, evitando que o organograma "fuja" durante o zoom.
+          if(fatorAntes!==fatorDepois){
+            area.scrollLeft=Math.max(0,px*(fatorDepois/fatorAntes)- (ev.clientX-rect.left));
+            area.scrollTop=Math.max(0,py*(fatorDepois/fatorAntes)- (ev.clientY-rect.top));
+          }
+        }, {passive:false});
+      }
+
+      function expandirOrganograma(expandir) {
+        document.querySelectorAll('#orgTreeContainer .org-tree li').forEach(function(li){ if(li.querySelector(':scope > ul')){ if(expandir) li.classList.remove('org-collapsed'); else li.classList.add('org-collapsed'); var btn=li.querySelector(':scope > .org-node .org-node-toggle'); if(btn) btn.innerHTML=expandir?'<i class="bi bi-chevron-down"></i>':'<i class="bi bi-chevron-right"></i>'; } });
+      }
+
+      function processarDemissoes() {
+        var input = document.getElementById("arquivoDemissoes");
+        var btn = document.getElementById("btnImportarDemissoes");
+        var msg = document.getElementById("msgMassa");
+
+        if (!input.files.length) {
+          alert("Selecione o modelo de demissão preenchido.");
+          return;
+        }
+
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Atualizando...';
+        msg.className = "alert mt-3 alert-info";
+        msg.innerText = "Lendo o arquivo e atualizando as demissões...";
+
+        lerArquivoParaJSON(input, function(dados, erro) {
+          if (erro) {
+            msg.className = "alert mt-3 alert-danger";
+            msg.innerText = "Erro ao ler arquivo: " + erro.message;
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-cloud-arrow-up-fill me-1"></i> Atualizar demissões';
+            return;
+          }
+
+          google.script.run
+            .withSuccessHandler(function(res) {
+              msg.className = "alert mt-3 " + (res.sucesso ? "alert-success" : "alert-danger");
+              msg.innerText = res.mensagem;
+              if (res.sucesso) input.value = "";
+              btn.disabled = false;
+              btn.innerHTML = '<i class="bi bi-cloud-arrow-up-fill me-1"></i> Atualizar demissões';
+            })
+            .withFailureHandler(function(err) {
+              msg.className = "alert mt-3 alert-danger";
+              msg.innerText = "Erro ao atualizar demissões: " + (err && err.message ? err.message : err);
+              btn.disabled = false;
+              btn.innerHTML = '<i class="bi bi-cloud-arrow-up-fill me-1"></i> Atualizar demissões';
+            })
+            .processarDemissoesEmMassa(dados);
+        });
+      }
+
+      if(document.readyState==='loading'){
+        document.addEventListener('DOMContentLoaded', configurarZoomGestualOrganograma);
+      } else {
+        configurarZoomGestualOrganograma();
+      }
+    </script>
+  </body>
+</html>
